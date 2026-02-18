@@ -1,0 +1,304 @@
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #1a1a2e;
+    --bg-light: #16213e;
+    --gold: #f5c542;
+    --white: #f0f0f0;
+    --muted: #8888a0;
+    --font: 'Roboto Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--white);
+    line-height: 1.7;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.gold { color: var(--gold); }
+.muted { color: var(--muted) !important; }
+
+/* ---- Hero ---- */
+.hero {
+    text-align: center;
+    padding: 100px 24px 80px;
+    background: radial-gradient(ellipse at 50% 0%, #16213e 0%, var(--bg) 70%);
+}
+
+.hero-avatar {
+    font-size: 80px;
+    margin-bottom: 24px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.hero h1 {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 700;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+}
+
+.hero-tagline {
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    color: var(--muted);
+    margin-bottom: 32px;
+    font-weight: 300;
+}
+
+.btn {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--bg);
+    padding: 14px 32px;
+    text-decoration: none;
+    font-family: var(--font);
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(245, 197, 66, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--gold);
+    border: 2px solid var(--gold);
+}
+
+.btn-outline:hover {
+    background: var(--gold);
+    color: var(--bg);
+}
+
+/* ---- Sections ---- */
+section { padding: 80px 0; }
+
+section h2 {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    margin-bottom: 24px;
+    color: var(--gold);
+    font-weight: 700;
+}
+
+/* ---- Story ---- */
+.story { background: var(--bg-light); }
+
+.story p {
+    margin-bottom: 20px;
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+.story em { color: var(--gold); font-style: italic; }
+
+/* ---- Tracker ---- */
+.tracker { text-align: center; }
+
+.tracker-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.tracker-bar {
+    flex: 1;
+    height: 40px;
+    background: #0f0f23;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 2px solid #333;
+    position: relative;
+}
+
+.tracker-fill {
+    height: 100%;
+    width: var(--progress);
+    background: linear-gradient(90deg, var(--gold), #ffd700);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+    min-width: 60px;
+    animation: fillBar 1.5s ease-out forwards;
+    position: relative;
+    overflow: hidden;
+}
+
+.tracker-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 200%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shimmer 2s ease-in-out infinite 1.5s;
+}
+
+@keyframes fillBar {
+    from { width: 0; }
+    to { width: var(--progress); }
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(50%); }
+}
+
+.tracker-fill-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--bg);
+    position: relative;
+    z-index: 1;
+}
+
+.tracker-goal {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.tracker-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ---- Products ---- */
+.products { background: var(--bg-light); }
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.card {
+    background: var(--bg);
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-decoration: none;
+    color: var(--white);
+    transition: border-color 0.3s, transform 0.2s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+a.card:hover {
+    border-color: var(--gold);
+    transform: translateY(-4px);
+}
+
+.card-soon { opacity: 0.6; }
+
+.card-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--gold);
+    color: var(--bg);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.card-soon .card-badge { background: #555; color: #aaa; }
+
+.card-icon { font-size: 2.5rem; margin-bottom: 16px; }
+
+.card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: var(--gold);
+}
+
+.card p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    flex: 1;
+    margin-bottom: 16px;
+}
+
+.card-cta {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gold);
+}
+
+/* ---- Follow ---- */
+.follow { text-align: center; }
+
+.follow p {
+    color: var(--muted);
+    margin-bottom: 32px;
+    font-size: 0.95rem;
+}
+
+.follow-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+}
+
+/* ---- Footer ---- */
+footer {
+    text-align: center;
+    padding: 40px 0;
+    border-top: 1px solid #222;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 600px) {
+    .hero { padding: 72px 24px 56px; }
+    section { padding: 56px 0; }
+    .tracker-stats { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .follow-links { flex-direction: column; align-items: center; }
+    .follow-links .btn { width: 100%; max-width: 280px; text-align: center; }
+}
