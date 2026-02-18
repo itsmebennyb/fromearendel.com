@@ -44,10 +44,10 @@ body {
 .hero-avatar img {
     width: 200px;
     height: 200px;
-    border-radius: 50%;
+    border-radius: 16px;
     border: 3px solid var(--gold);
     object-fit: cover;
-    box-shadow: 0 0 40px rgba(245, 197, 66, 0.2);
+    box-shadow: 0 0 40px rgba(245, 197, 66, 0.25);
 }
 
 @keyframes float {
