@@ -216,6 +216,100 @@ section h2 {
     letter-spacing: 1px;
 }
 
+/* ---- Journey Timeline ---- */
+.journey { background: var(--bg-light); }
+
+.journey-subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 32px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--gold), #333);
+}
+
+.timeline-entry {
+    position: relative;
+    margin-bottom: 36px;
+}
+
+.timeline-entry:last-child { margin-bottom: 0; }
+
+.timeline-marker {
+    position: absolute;
+    left: -32px;
+    top: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #333;
+    border: 2px solid #555;
+    z-index: 1;
+}
+
+.timeline-marker.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 12px rgba(245, 197, 66, 0.5);
+}
+
+.timeline-date {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+}
+
+.timeline-content {
+    background: var(--bg);
+    border: 1px solid #2a2a40;
+    border-radius: 8px;
+    padding: 20px;
+    transition: border-color 0.3s;
+}
+
+.timeline-content:hover {
+    border-color: rgba(245, 197, 66, 0.3);
+}
+
+.timeline-title {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 8px;
+}
+
+.timeline-text {
+    font-size: 0.88rem;
+    color: #aaa;
+    line-height: 1.6;
+}
+
+.timeline-text em {
+    color: var(--gold);
+    font-style: italic;
+}
+
+@media (max-width: 600px) {
+    .timeline { padding-left: 28px; }
+    .timeline-marker { left: -28px; width: 14px; height: 14px; }
+    .timeline::before { left: 6px; }
+}
+
 /* ---- Products ---- */
 .products { background: var(--bg-light); }
 
