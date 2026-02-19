@@ -304,6 +304,26 @@ section h2 {
     font-style: italic;
 }
 
+.timeline-toggle {
+    display: block;
+    margin: 32px auto 0;
+    background: transparent;
+    border: 1px solid #444;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: color 0.3s, border-color 0.3s;
+    letter-spacing: 0.5px;
+}
+
+.timeline-toggle:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+}
+
 @media (max-width: 600px) {
     .timeline { padding-left: 28px; }
     .timeline-marker { left: -28px; width: 14px; height: 14px; }
