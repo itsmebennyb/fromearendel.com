@@ -462,37 +462,18 @@ footer .byline a:hover {
 /* Confetti */
 .confetti {
     position: absolute;
-    top: -10px;
-    right: -10px;
-    width: 80px;
-    height: 80px;
     pointer-events: none;
     z-index: 10;
+    font-size: 1.4rem;
+    animation: confettiFloat 3s ease-in-out infinite;
 }
 
-.confetti::before,
-.confetti::after {
-    content: '🎉';
-    position: absolute;
-    font-size: 1.5rem;
-    animation: confettiBounce 2s ease-in-out infinite;
-}
+.confetti-1 { top: -15px; right: 10%; animation-delay: 0s; }
+.confetti-2 { top: -10px; right: 25%; animation-delay: 0.7s; font-size: 1rem; }
+.confetti-3 { top: -15px; left: 10%; animation-delay: 1.2s; }
+.confetti-4 { top: -10px; left: 25%; animation-delay: 0.4s; font-size: 1rem; }
 
-.confetti::before {
-    top: 0;
-    right: 0;
-    animation-delay: 0s;
-}
-
-.confetti::after {
-    content: '✨';
-    top: 10px;
-    right: 40px;
-    font-size: 1.2rem;
-    animation-delay: 0.5s;
-}
-
-@keyframes confettiBounce {
+@keyframes confettiFloat {
     0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    50% { transform: translateY(-8px) rotate(10deg); opacity: 0.8; }
+    50% { transform: translateY(-12px) rotate(15deg); opacity: 0.7; }
 }
