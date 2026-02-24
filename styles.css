@@ -492,6 +492,6 @@ footer .byline a:hover {
 
 @keyframes confettiFall {
     0% { transform: translateY(0px) rotate(0deg); opacity: 1; }
-    50% { transform: translateY(40px) rotate(180deg); opacity: 1; }
+    50% { transform: translateY(70px) rotate(180deg); opacity: 1; }
     100% { transform: translateY(0px) rotate(360deg); opacity: 1; }
 }
