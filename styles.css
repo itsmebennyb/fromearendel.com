@@ -132,7 +132,6 @@ section h2 {
     align-items: center;
     gap: 12px;
     margin-bottom: 32px;
-    position: relative;
 }
 
 .tracker-bar {
@@ -179,10 +178,11 @@ section h2 {
 }
 
 .tracker-fill-label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 700;
-    color: var(--gold);
-    white-space: nowrap;
+    color: var(--bg);
+    position: relative;
+    z-index: 1;
 }
 
 .tracker-goal {
