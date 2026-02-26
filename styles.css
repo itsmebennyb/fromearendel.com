@@ -126,11 +126,11 @@ section h2 {
 
 /* ---- Chapters ---- */
 .chapters {
-    padding: 2rem 0;
+    padding: 0;
 }
 
 .chapter {
-    margin-bottom: 1rem;
+    margin: 0;
 }
 
 .chapter-header {
@@ -140,8 +140,9 @@ section h2 {
     gap: 12px;
     padding: 1rem 2rem;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0;
     cursor: pointer;
     list-style: none;
     transition: background 0.2s;
@@ -194,19 +195,14 @@ section h2 {
     margin-left: 4px;
 }
 
-details[open] > .chapter-header {
-    border-radius: 12px 12px 0 0;
-}
-
 details[open] > .chapter-header .chapter-chevron {
     transform: rotate(-135deg);
 }
 
 .chapter-content {
-    margin-top: -1px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-top: none;
-    border-radius: 0 0 12px 12px;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0;
     padding: 2rem 0;
     animation: chapterReveal 0.3s ease-out;
 }
@@ -222,11 +218,12 @@ details[open] > .chapter-header .chapter-chevron {
     justify-content: center;
     gap: 12px;
     padding: 1rem 2rem;
-    opacity: 0.6;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
 }
 
-.chapter-teaser .chapter-title {
-    color: var(--muted);
+.chapter-teaser .chapter-badge {
+    cursor: default;
 }
 
 /* ---- Tracker ---- */
