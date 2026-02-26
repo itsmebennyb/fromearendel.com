@@ -126,7 +126,7 @@ section h2 {
 
 /* ---- Chapters ---- */
 .chapters {
-    padding: 0;
+    padding: 0 !important;
 }
 
 .chapter {
