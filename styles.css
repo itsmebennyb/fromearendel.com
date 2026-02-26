@@ -202,7 +202,6 @@ details[open] > .chapter-header .chapter-chevron {
 
 .chapter-content {
     border: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0;
     padding: 2rem 0;
     animation: chapterReveal 0.3s ease-out;
@@ -221,6 +220,7 @@ details[open] > .chapter-header .chapter-chevron {
     padding: 1rem 2rem;
     background: rgba(255, 255, 255, 0.05);
     border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
