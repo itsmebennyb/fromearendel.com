@@ -124,6 +124,111 @@ section h2 {
 
 .story em { color: var(--gold); font-style: italic; }
 
+/* ---- Chapters ---- */
+.chapters {
+    padding: 2rem 0;
+}
+
+.chapter {
+    margin-bottom: 1rem;
+}
+
+.chapter-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    list-style: none;
+    transition: background 0.2s;
+    user-select: none;
+}
+
+.chapter-header::-webkit-details-marker { display: none; }
+.chapter-header::marker { display: none; content: ''; }
+
+.chapter-header:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.chapter-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.chapter-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.chapter-badge.complete {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.chapter-badge.upcoming {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.chapter-chevron {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg);
+    transition: transform 0.3s;
+    margin-left: 4px;
+}
+
+details[open] > .chapter-header {
+    border-radius: 12px 12px 0 0;
+}
+
+details[open] > .chapter-header .chapter-chevron {
+    transform: rotate(-135deg);
+}
+
+.chapter-content {
+    margin-top: -1px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 2rem 0;
+    animation: chapterReveal 0.3s ease-out;
+}
+
+@keyframes chapterReveal {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chapter-teaser {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 1rem 2rem;
+    opacity: 0.6;
+}
+
+.chapter-teaser .chapter-title {
+    color: var(--muted);
+}
+
 /* ---- Tracker ---- */
 .tracker { text-align: center; }
 
