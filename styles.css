@@ -185,6 +185,12 @@ section h2 {
     border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+.chapter-badge.active-fund {
+    background: rgba(245, 197, 66, 0.15);
+    color: var(--gold);
+    border: 1px solid rgba(245, 197, 66, 0.3);
+}
+
 .chapter-chevron {
     display: inline-block;
     width: 10px;
@@ -230,6 +236,24 @@ details[open] > .chapter-header .chapter-chevron {
 
 /* ---- Tracker ---- */
 .tracker { text-align: center; }
+
+.tracker-subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 32px;
+    font-style: italic;
+}
+
+.tracker-subtitle a {
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(245, 197, 66, 0.3);
+    transition: border-color 0.2s;
+}
+
+.tracker-subtitle a:hover {
+    border-color: var(--gold);
+}
 
 .tracker-bar-container {
     display: flex;
