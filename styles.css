@@ -473,6 +473,19 @@ details[open] > .chapter-header .chapter-chevron {
     .timeline-marker { left: -28px; width: 14px; height: 14px; }
     .timeline::before { left: 6px; }
     .chapter-num { display: block; }
+    .chapter-header {
+        justify-content: space-between;
+        flex-wrap: wrap;
+        padding: 1rem 1.25rem;
+    }
+    .chapter-title {
+        flex: 1 1 auto;
+        text-align: left;
+    }
+    .chapter-badge,
+    .chapter-chevron {
+        flex: 0 0 auto;
+    }
 }
 
 /* ---- Products ---- */
