@@ -472,6 +472,7 @@ details[open] > .chapter-header .chapter-chevron {
     .timeline { padding-left: 28px; }
     .timeline-marker { left: -28px; width: 14px; height: 14px; }
     .timeline::before { left: 6px; }
+    .chapter-num { display: block; }
 }
 
 /* ---- Products ---- */
