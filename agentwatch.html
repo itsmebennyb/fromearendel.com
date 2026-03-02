@@ -194,6 +194,7 @@
             tokens.forEach(function(t){
                 var tok=t.token||{},dec=parseInt(tok.decimals||18),sym=tok.symbol||'?';
                 if(sym==='WETH')return;
+                if(!sym||sym==='?'||sym.length>20)return;
                 var val;try{var b=BigInt(t.value||'0'),s=b.toString();if(s.length<=dec)val=Number(b)/Math.pow(10,dec);else val=parseFloat(s.slice(0,s.length-dec)+'.'+s.slice(s.length-dec))}catch(e){val=parseFloat(t.value||'0')/Math.pow(10,dec)}
                 if(val<0.001)return;
                 var rate=tok.exchange_rate?parseFloat(tok.exchange_rate):null,usd=rate?val*rate:null;

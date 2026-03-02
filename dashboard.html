@@ -176,11 +176,13 @@
             fetch(BS+'/addresses/'+W+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
                 if(!tokens||!tokens.length)return;
                 var html='';
-                html+='<div class="hold-item native"><span class="hold-sym">WETH</span><div class="hold-r"><div class="hold-val">'+$('v-weth').textContent+'</div><div class="hold-usd">'+$('u-weth').textContent+'</div></div></div>';
+                // WETH already shown in balance card above
+                // html+='<div class="hold-item native"><span class="hold-sym">WETH</span><div class="hold-r"><div class="hold-val">'+$('v-weth').textContent+'</div><div class="hold-usd">'+$('u-weth').textContent+'</div></div></div>';
                 tokens.forEach(function(t){
                     var tok=t.token||{},dec=parseInt(tok.decimals||18);
                     var raw=t.value||'0',sym=tok.symbol||'?';
                     if(sym==='WETH')return;
+                    if(!sym||sym==='?'||sym.length>20)return;
                     var val;
                     try{var b=BigInt(raw);var s=b.toString();if(s.length<=dec){val=Number(b)/Math.pow(10,dec)}else{var w=s.slice(0,s.length-dec)||'0';var f=s.slice(s.length-dec);val=parseFloat(w+'.'+f)}}catch(e){val=parseFloat(raw)/Math.pow(10,dec)}
                     if(val<0.001)return;
