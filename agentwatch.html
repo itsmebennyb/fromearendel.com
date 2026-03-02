@@ -318,7 +318,7 @@
             var a=A[i],sec=$('det');sec.classList.add('vis');
             $('det-title').textContent=a.n+(a.ens?' ('+a.ens+')':'');
             $('det-addr').innerHTML='<a href="https://basescan.org/address/'+a.w+'" target="_blank">'+a.w+'</a>';
-            $('det-bal').innerHTML='<div class="det-bal-top"><div class="db-i"><span class="db-lbl">Total</span><span class="db-val gold">'+fu(a._u||0)+'</span></div><div class="db-i"><span class="db-lbl">ETH + WETH</span><span class="db-val">'+fe(a._e+a._w)+'</span><span class="db-sub">'+fu(a._eu)+'</span></div><div class="db-i"><span class="db-lbl">'+a.ts+'</span><span class="db-val">'+fmtN(a._tb||0)+'</span><span class="db-sub">'+(a._tp>0?fu(a._tu):'price unavailable')+'</span></div></div>';
+            $('det-bal').innerHTML='<div class="det-bal-top"><div class="db-i"><span class="db-lbl">Total</span><span class="db-val gold">'+fu(a._u||0)+'</span></div><div class="db-i"><span class="db-lbl">ETH / WETH</span><span class="db-val">'+fe(a._e)+' + '+fe(a._w)+'</span><span class="db-sub">'+fu(a._eu)+'</span></div><div class="db-i"><span class="db-lbl">'+a.ts+'</span><span class="db-val">'+fmtN(a._tb||0)+'</span><span class="db-sub">'+(a._tp>0?fu(a._tu):'price unavailable')+'</span></div></div>';
             $('det-txs').innerHTML='<div class="load-i">Loading transactions...</div>';
             $('hold-sec').style.display='none';$('hold-grid').innerHTML='';$('hold-small').innerHTML='';$('hold-small').classList.remove('show');$('hold-toggle').style.display='none';
             document.querySelectorAll('.card').forEach(function(c){c.classList.remove('active')});

@@ -122,7 +122,7 @@
             <div class="bal-total" id="total-usd">&mdash;</div>
             <div class="bal-sub" id="total-sub">&mdash;</div>
             <div class="bal-grid">
-                <div class="bal-i"><span class="bal-i-lbl">WETH</span><span class="bal-i-val" id="v-weth">&mdash;</span><span class="bal-i-usd" id="u-weth">&mdash;</span></div>
+                <div class="bal-i"><span class="bal-i-lbl">ETH / WETH</span><span class="bal-i-val" id="v-weth">&mdash;</span><span class="bal-i-usd" id="u-weth">&mdash;</span></div>
                 <div class="bal-i"><span class="bal-i-lbl">EARENDEL</span><span class="bal-i-val" id="v-earendel">&mdash;</span><span class="bal-i-usd" id="u-earendel">&mdash;</span></div>
             </div>
         </div>
@@ -207,8 +207,8 @@
             var totalUsd=wethUsd+earendelUsd;
 
             $('total-usd').textContent=fu(totalUsd);
-            $('total-sub').textContent=(ethBal+wethBal).toFixed(4)+' ETH + '+fmtN(earendelBal)+' EARENDEL';
-            $('v-weth').textContent=(ethBal+wethBal).toFixed(6)+' ETH';
+            $('total-sub').textContent=(ethBal+wethBal).toFixed(4)+' ETH/WETH + '+fmtN(earendelBal)+' EARENDEL';
+            $('v-weth').textContent=ethBal.toFixed(4)+' ETH + '+wethBal.toFixed(4)+' WETH';
             $('u-weth').textContent=fu(wethUsd);
             $('v-earendel').textContent=fmtN(earendelBal);
             $('u-earendel').textContent=earendelPrice>0?fu(earendelUsd):'price unavailable';
