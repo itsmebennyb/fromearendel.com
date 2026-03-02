@@ -190,8 +190,8 @@
 
         function $(id) { return document.getElementById(id); }
         function truncAddr(a) { return a ? a.slice(0,6) + '\u2026' + a.slice(-4) : '\u2014'; }
-        function fmtUsd(u) { return u < 0.01 ? '< $0.01' : '$' + u.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-        function fmtEthShort(e) { return e < 0.0001 && e > 0 ? e.toExponential(2) : e.toFixed(4); }
+        function fmtUsd(u) { if (isNaN(u)||u===null||u===undefined) return '—'; return u < 0.01 ? '< $0.01' : '$' + u.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+        function fmtEthShort(e) { if (isNaN(e)) return '—'; return e < 0.0001 && e > 0 ? e.toExponential(2) : e.toFixed(4); }
         function fmtDate(iso) { var d = new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' \u00b7 ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
 
         function rpcCall(method, params) {
@@ -199,13 +199,15 @@
                 .then(function(r){return r.json();}).then(function(d){return d.result;});
         }
 
+        function hexToFloat(hex) { try { return Number(BigInt(hex)) / 1e18; } catch(e) { return parseInt(hex,16) / 1e18; } }
+
         function getBalances(wallet) {
             var balOfData = '0x70a08231000000000000000000000000' + wallet.slice(2).toLowerCase();
             return Promise.all([
                 rpcCall('eth_getBalance', [wallet, 'latest']),
                 rpcCall('eth_call', [{to: WETH, data: balOfData}, 'latest'])
             ]).then(function(r) {
-                return { eth: parseInt(r[0],16)/1e18, weth: parseInt(r[1],16)/1e18 };
+                return { eth: hexToFloat(r[0]), weth: hexToFloat(r[1]) };
             });
         }
 
