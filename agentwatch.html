@@ -211,7 +211,7 @@
         ]).then(function(res){
             var all=[];
             (res[0].items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out';all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash)})});
-            (res[1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';all.push({hash:tx.tx_hash||tx.hash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true})});
+            (res[1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';all.push({hash:tx.transaction_hash||tx.tx_hash||tx.hash||"",ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true})});
             var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
             all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});
             var show=all.slice(0,15);
