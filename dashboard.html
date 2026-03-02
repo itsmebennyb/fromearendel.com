@@ -161,7 +161,12 @@
     var EARENDEL_CA='0x62Bcefd446f97526ECC1375D02e014cFb8b48BA3';
     var RPC='https://mainnet.base.org',BS='https://base.blockscout.com/api/v2';
     var CG='https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
-    var GT='https://api.geckoterminal.com/api/v2/networks/base/tokens/0x62Bcefd446f97526ECC1375D02e014cFb8b48BA3/pools';
+    function getTokenPrice(ca){
+        return fetch('https://api.geckoterminal.com/api/v2/networks/base/tokens/'+ca+'/pools').then(function(r){return r.json()}).then(function(d){
+            var pools=d.data||[];if(pools.length>0){var best=pools.reduce(function(a,b){return parseFloat(b.attributes.reserve_in_usd||0)>parseFloat(a.attributes.reserve_in_usd||0)?b:a});var p=parseFloat(best.attributes.base_token_price_usd||0);if(p>0)return p;}
+            return fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca).then(function(r){return r.json()}).then(function(d2){var pairs=d2.pairs||[];if(pairs.length>0)return parseFloat(pairs[0].priceUsd||0);return fetch(BS+'/tokens/'+ca).then(function(r){return r.json()}).then(function(d3){return parseFloat(d3.exchange_rate||0)})});
+        }).catch(function(){return 0});
+    }
 
     function $(id){return document.getElementById(id)}
     function tr(a){return a?a.slice(0,6)+'\u2026'+a.slice(-4):'\u2014'}
@@ -184,23 +189,21 @@
 
     function refresh(){
         var wethData='0x70a08231000000000000000000000000'+W.slice(2).toLowerCase();
-        var earendelData='0x70a08231000000000000000000000000'+W.slice(2).toLowerCase();
 
         Promise.all([
             rpc('eth_getBalance',[W,'latest']),
             rpc('eth_call',[{to:WETH_CA,data:wethData},'latest']),
-            rpc('eth_call',[{to:EARENDEL_CA,data:earendelData},'latest']),
+            fetch(BS+'/addresses/'+W+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
+                for(var i=0;i<tokens.length;i++){var tok=tokens[i].token||{};var addr=(tok.address_hash||tok.address||'').toLowerCase();if(addr===EARENDEL_CA.toLowerCase())return s2f(tokens[i].value||'0',parseInt(tok.decimals||18))}return 0;
+            }).catch(function(){return 0}),
             fetch(CG).then(function(r){return r.json()}),
-            fetch(GT).then(function(r){return r.json()}).catch(function(){return null})
+            getTokenPrice(EARENDEL_CA)
         ]).then(function(r){
             var ethBal=h2f(r[0]);
             var wethBal=h2f(r[1]);
-            var earendelBal=h2f(r[2]);
+            var earendelBal=r[2];
             var ethPrice=r[3].ethereum.usd;
-            var earendelPrice=0;
-            if(r[4]&&r[4].data&&r[4].data.length>0){
-                earendelPrice=parseFloat(r[4].data[0].attributes.base_token_price_usd)||0;
-            }
+            var earendelPrice=r[4]||0;
 
             var wethUsd=(ethBal+wethBal)*ethPrice;
             var earendelUsd=earendelBal*earendelPrice;

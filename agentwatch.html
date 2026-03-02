@@ -40,10 +40,9 @@
         .card-handle{font-family:var(--font-m);font-size:.7rem;color:var(--muted);margin-bottom:12px}
         .card-handle a{color:var(--muted);text-decoration:none}.card-handle a:hover{color:var(--gold)}
         .card-bal{font-family:var(--font-m);font-size:1.4rem;font-weight:700;color:var(--gold);margin-bottom:2px}
-        .card-eth{font-family:var(--font-m);font-size:.75rem;color:var(--muted)}
+        .card-sub{font-family:var(--font-m);font-size:.65rem;color:var(--muted);line-height:1.4}
         .card-load{font-family:var(--font-m);font-size:.8rem;color:var(--muted)}
         .card-rank{position:absolute;top:12px;right:16px;font-family:var(--font-m);font-size:.65rem;color:#555;text-transform:uppercase;letter-spacing:1px}
-        /* Detail */
         .det{padding:0 0 60px;display:none}
         .det.vis{display:block}
         .det-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
@@ -52,11 +51,13 @@
         .det-addr a{color:var(--muted);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}.det-addr a:hover{color:var(--gold)}
         .det-close{background:none;border:1px solid #444;color:var(--muted);font-family:var(--font-m);font-size:.75rem;padding:6px 16px;border-radius:6px;cursor:pointer;transition:color .2s,border-color .2s}
         .det-close:hover{color:var(--gold);border-color:var(--gold)}
-        .det-bal{background:var(--bg-card);border:1px solid #2a2a40;border-radius:10px;padding:24px;margin-bottom:24px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+        .det-bal{background:var(--bg-card);border:1px solid #2a2a40;border-radius:10px;padding:24px;margin-bottom:24px}
+        .det-bal-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+        .det-bal-tok{border-top:1px solid rgba(255,255,255,.08);padding-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
         .db-i{display:flex;flex-direction:column;gap:2px}
         .db-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
         .db-val{font-family:var(--font-m);font-size:1rem;font-weight:500}
-        /* Holdings */
+        .db-sub{font-family:var(--font-m);font-size:.7rem;color:var(--muted)}
         .hold{margin-bottom:24px}
         .hold h3{font-family:var(--font-h);font-size:1.1rem;color:var(--gold);margin-bottom:12px;font-weight:700}
         .hold-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
@@ -66,7 +67,10 @@
         .hold-r{text-align:right}
         .hold-val{font-family:var(--font-m);font-size:.8rem}
         .hold-usd{font-family:var(--font-m);font-size:.65rem;color:var(--muted)}
-        /* TX */
+        .hold-toggle{background:none;border:1px solid #333;color:var(--muted);font-family:var(--font-m);font-size:.7rem;padding:6px 16px;border-radius:6px;cursor:pointer;margin-top:12px;transition:all .2s;display:none}
+        .hold-toggle:hover{color:var(--gold);border-color:var(--gold)}
+        .hold-small{display:none}
+        .hold-small.show{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:8px}
         .tx-sec h3{font-family:var(--font-h);font-size:1.1rem;color:var(--gold);margin-bottom:16px;font-weight:700}
         .tx-list{display:flex;flex-direction:column;gap:6px}
         .tx-row{display:grid;grid-template-columns:60px 1fr auto;align-items:center;gap:12px;background:var(--bg-card);border:1px solid #2a2a40;border-radius:6px;padding:12px 16px;text-decoration:none;color:var(--white);transition:border-color .2s;font-size:.85rem}
@@ -82,8 +86,8 @@
         .load-i{font-family:var(--font-m);font-size:.8rem;color:var(--muted);padding:24px;text-align:center}
         footer{text-align:center;padding:40px 0;border-top:1px solid #222;color:var(--muted);font-size:.85rem}
         footer .by{margin-top:8px;font-size:.75rem;color:#555}
-        footer a{color:#777;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}.footer a:hover{color:var(--gold)}
-        @media(max-width:600px){header .c{flex-direction:column;align-items:flex-start}.grid{grid-template-columns:1fr}.det-bal{grid-template-columns:1fr}.tx-row{grid-template-columns:50px 1fr auto;gap:8px;padding:10px 12px}}
+        footer a{color:#777;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}footer a:hover{color:var(--gold)}
+        @media(max-width:600px){header .c{flex-direction:column;align-items:flex-start}.grid{grid-template-columns:1fr}.det-bal-top{grid-template-columns:1fr}.det-bal-tok{grid-template-columns:1fr}.tx-row{grid-template-columns:50px 1fr auto;gap:8px;padding:10px 12px}}
     </style>
 </head>
 <body>
@@ -104,7 +108,7 @@
         <button class="det-close" id="det-close">Close &times;</button>
     </div>
     <div class="det-bal" id="det-bal"></div>
-    <div class="hold" id="hold-sec" style="display:none"><h3>Token Holdings</h3><div class="hold-grid" id="hold-grid"></div></div>
+    <div class="hold" id="hold-sec" style="display:none"><h3>Token Holdings</h3><div class="hold-grid" id="hold-grid"></div><div class="hold-small" id="hold-small"></div><button class="hold-toggle" id="hold-toggle"></button></div>
     <div class="tx-sec"><h3>Recent Activity</h3><div id="det-txs" class="tx-list"></div></div>
 </div></section>
 
@@ -120,31 +124,66 @@
     var WETH_CA='0x4200000000000000000000000000000000000006';
     var ethPrice=0;
 
+    // Each agent: n=name, h=handle, w=wallet, u=X url, ens=ENS, tc=token CA, ts=token symbol
     var A=[
-        {n:'Earendel',h:'@FromEarendel',w:'0x885af82ba282A1f04bAB03Cd32a241d408aA3684',ens:'fromearendel.base.eth',u:'https://x.com/FromEarendel'},
-        {n:'Felix',h:'@FelixCraftAI',w:'0x778902475c0B5Cf97BB91515a007d983Ad6E70A6',u:'https://x.com/FelixCraftAI'},
-        {n:'Kelly',h:'@KellyClaudeAI',w:'0xF6bf691711dB89c43925dD013cf10b36BD67E07B',u:'https://x.com/KellyClaudeAI'},
-        {n:'CLAWD',h:'@clawdbotatg',w:'0x8c869B5A32C6Dd9dBCd910D9ed876D01fA806e6D',u:'https://x.com/clawdbotatg'},
-        {n:'Owockibot',h:'@owockibot',w:'0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be',u:'https://x.com/owockibot'},
-        {n:'Juno',h:'@JunoAgent',w:'0xeAEC194B018d71F93313Df12C6271b29dfdDd4Fb',u:'https://x.com/JunoAgent'},
-        {n:'Lauki',h:'@laukiantonson',w:'0x81885AA501511F96655e8CcED3cf03A5c2904E74',u:'https://x.com/laukiantonson'},
-        {n:'AntiHunter',h:'@AntiHunterAI',w:'0xa668DDf22a4C0Ecbb31c89b16f355B26AE7703c3',u:'https://x.com/AntiHunterAI'},
-        {n:'Sairi',h:'@santisairi',w:'0x8794fE93C2b737F2f3CD4463DE04882Af412679f',u:'https://x.com/santisairi'}
+        {n:'Earendel',h:'@FromEarendel',w:'0x885af82ba282A1f04bAB03Cd32a241d408aA3684',ens:'fromearendel.base.eth',u:'https://x.com/FromEarendel',tc:'0x62Bcefd446f97526ECC1375D02e014cFb8b48BA3',ts:'EARENDEL'},
+        {n:'Felix',h:'@FelixCraftAI',w:'0x778902475c0B5Cf97BB91515a007d983Ad6E70A6',u:'https://x.com/FelixCraftAI',tc:'0xf30Bf00edd0C22db54C9274B90D2A4C21FC09b07',ts:'FELIX'},
+        {n:'Kelly',h:'@KellyClaudeAI',w:'0xF6bf691711dB89c43925dD013cf10b36BD67E07B',u:'https://x.com/KellyClaudeAI',tc:'0x50D2280441372486BeecdD328c1854743EBaCb07',ts:'KELLYCLAUDE'},
+        {n:'CLAWD',h:'@clawdbotatg',w:'0x8c869B5A32C6Dd9dBCd910D9ed876D01fA806e6D',u:'https://x.com/clawdbotatg',tc:'0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07',ts:'CLAWD'},
+        {n:'Owockibot',h:'@owockibot',w:'0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be',u:'https://x.com/owockibot',tc:'0xfDC933Ff4e2980d18beCF48e4E030d8463A2Bb07',ts:'OWOCKIBOT'},
+        {n:'Juno',h:'@JunoAgent',w:'0xeAEC194B018d71F93313Df12C6271b29dfdDd4Fb',u:'https://x.com/JunoAgent',tc:'0x4E6c9f48f73E54EE5F3AB7e2992B2d733D0d0b07',ts:'JUNO'},
+        {n:'Lauki',h:'@laukiantonson',w:'0x81885AA501511F96655e8CcED3cf03A5c2904E74',u:'https://x.com/laukiantonson',tc:'0xebECb4e1e3Cf94b450D20e9AbF50D85CB5579b07',ts:'LAUKI'},
+        {n:'AntiHunter',h:'@AntiHunterAI',w:'0xa668DDf22a4C0Ecbb31c89b16f355B26AE7703c3',u:'https://x.com/AntiHunterAI',tc:'0xe2f3FaE4bc62E21826018364aa30ae45D430bb07',ts:'ANTIHUNTER'},
+        {n:'Sairi',h:'@santisairi',w:'0x8794fE93C2b737F2f3CD4463DE04882Af412679f',u:'https://x.com/santisairi',tc:'0xde61878b0b21ce395266c44D4d548D1C72A3eB07',ts:'SAIRI'}
     ];
 
     function $(id){return document.getElementById(id)}
     function tr(a){return a?a.slice(0,6)+'\u2026'+a.slice(-4):'\u2014'}
     function fu(u){if(!u||isNaN(u))return'\u2014';if(u<0.01)return'< $0.01';return'$'+u.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
     function fd(iso){var d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' \u00b7 '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
-    function h2f(h){if(!h||h==='0x')return 0;try{var b=BigInt(h),s=b.toString();if(s.length<=18)return Number(b)/1e18;return parseFloat(s.slice(0,s.length-18)+'.'+s.slice(s.length-18))}catch(e){return 0}}
     function fmtN(v){if(v>1e9)return(v/1e9).toFixed(2)+'B';if(v>1e6)return(v/1e6).toFixed(2)+'M';if(v>1e3)return(v/1e3).toFixed(1)+'K';return v.toFixed(v<1?6:2)}
     function fe(e){if(!e||isNaN(e))return'\u2014';return e<0.0001&&e>0?e.toExponential(2):e.toFixed(4)}
 
+    function h2f(h,dec){if(!h||h==='0x')return 0;dec=dec||18;try{var s=BigInt(h).toString();if(s.length<=dec)return Number(BigInt(h))/Math.pow(10,dec);return parseFloat(s.slice(0,s.length-dec)+'.'+s.slice(s.length-dec))}catch(e){return 0}}
+    function s2f(s,dec){if(!s||s==='0')return 0;dec=dec||18;try{var str=BigInt(s).toString();if(str.length<=dec)return Number(BigInt(s))/Math.pow(10,dec);return parseFloat(str.slice(0,str.length-dec)+'.'+str.slice(str.length-dec))}catch(e){return parseFloat(s)/Math.pow(10,dec)}}
+
     function rpc(m,p){return fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',method:m,params:p,id:1})}).then(function(r){return r.json()}).then(function(d){return d.result})}
 
-    function getBal(w){
-        var bd='0x70a08231000000000000000000000000'+w.slice(2).toLowerCase();
-        return Promise.all([rpc('eth_getBalance',[w,'latest']),rpc('eth_call',[{to:WETH_CA,data:bd},'latest'])]).then(function(r){return{eth:h2f(r[0]),weth:h2f(r[1])}})
+    function getBal(w){var bd='0x70a08231000000000000000000000000'+w.slice(2).toLowerCase();return Promise.all([rpc('eth_getBalance',[w,'latest']),rpc('eth_call',[{to:WETH_CA,data:bd},'latest'])]).then(function(r){return{eth:h2f(r[0]),weth:h2f(r[1])}})}
+
+    // Fetch native token price: try GeckoTerminal, then DexScreener, then Blockscout
+    function getTokenPrice(ca){
+        return fetch('https://api.geckoterminal.com/api/v2/networks/base/tokens/'+ca+'/pools').then(function(r){return r.json()}).then(function(d){
+            var pools=d.data||[];
+            if(pools.length>0){
+                var best=pools.reduce(function(a,b){return parseFloat(b.attributes.reserve_in_usd||0)>parseFloat(a.attributes.reserve_in_usd||0)?b:a});
+                var p=parseFloat(best.attributes.base_token_price_usd||0);
+                if(p>0)return p;
+            }
+            // Fallback: DexScreener
+            return fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca).then(function(r){return r.json()}).then(function(d2){
+                var pairs=d2.pairs||[];
+                if(pairs.length>0)return parseFloat(pairs[0].priceUsd||0);
+                // Fallback: Blockscout exchange_rate
+                return fetch(BS+'/tokens/'+ca).then(function(r){return r.json()}).then(function(d3){
+                    return parseFloat(d3.exchange_rate||0);
+                });
+            });
+        }).catch(function(){return 0});
+    }
+
+    // Get token balance from Blockscout token-balances (finds the right one by CA)
+    function getTokenBal(wallet,ca){
+        return fetch(BS+'/addresses/'+wallet+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
+            for(var i=0;i<tokens.length;i++){
+                var tok=tokens[i].token||{};
+                var addr=(tok.address_hash||tok.address||'').toLowerCase();
+                if(addr===ca.toLowerCase()){
+                    return s2f(tokens[i].value||'0',parseInt(tok.decimals||18));
+                }
+            }
+            return 0;
+        }).catch(function(){return 0});
     }
 
     var grid=$('grid');
@@ -159,10 +198,22 @@
         fetch(CG).then(function(r){return r.json()}).then(function(d){
             ethPrice=d.ethereum.usd;
             var ps=A.map(function(a,i){
-                return getBal(a.w).then(function(b){
-                    a._e=b.eth;a._w=b.weth;a._t=b.eth+b.weth;a._u=a._t*ethPrice;
+                return Promise.all([
+                    getBal(a.w),
+                    a.tc?getTokenPrice(a.tc):Promise.resolve(0),
+                    a.tc?getTokenBal(a.w,a.tc):Promise.resolve(0)
+                ]).then(function(r){
+                    a._e=r[0].eth;a._w=r[0].weth;
+                    a._tp=r[1]||0; // token price
+                    a._tb=r[2]||0; // token balance
+                    a._tu=a._tb*a._tp; // token USD
+                    a._eu=(a._e+a._w)*ethPrice; // ETH USD
+                    a._u=a._eu+a._tu; // total USD
+
                     var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');
-                    el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-eth">'+fe(a._t)+' ETH</div>';
+                    var sub=fe(a._e+a._w)+' ETH';
+                    if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;
+                    el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>';
                 }).catch(function(){$('b-'+i).textContent='Error';$('c-'+i).classList.remove('loading')});
             });
             Promise.all(ps).then(function(){
@@ -177,9 +228,12 @@
         var a=A[i],sec=$('det');sec.classList.add('vis');
         $('det-title').textContent=a.n+(a.ens?' ('+a.ens+')':'');
         $('det-addr').innerHTML='<a href="https://basescan.org/address/'+a.w+'" target="_blank">'+a.w+'</a>';
-        $('det-bal').innerHTML='<div class="db-i"><span class="db-lbl">Total</span><span class="db-val gold">'+fu(a._u||0)+'</span></div><div class="db-i"><span class="db-lbl">ETH</span><span class="db-val">'+(a._e||0).toFixed(6)+'</span></div><div class="db-i"><span class="db-lbl">WETH</span><span class="db-val">'+(a._w||0).toFixed(6)+'</span></div>';
+
+        var balHtml='<div class="det-bal-top"><div class="db-i"><span class="db-lbl">Total</span><span class="db-val gold">'+fu(a._u||0)+'</span></div><div class="db-i"><span class="db-lbl">ETH + WETH</span><span class="db-val">'+fe(a._e+a._w)+'</span><span class="db-sub">'+fu(a._eu)+'</span></div><div class="db-i"><span class="db-lbl">'+a.ts+'</span><span class="db-val">'+fmtN(a._tb||0)+'</span><span class="db-sub">'+(a._tp>0?fu(a._tu):'price unavailable')+'</span></div></div>';
+        $('det-bal').innerHTML=balHtml;
+
         $('det-txs').innerHTML='<div class="load-i">Loading transactions...</div>';
-        $('hold-sec').style.display='none';$('hold-grid').innerHTML='';
+        $('hold-sec').style.display='none';$('hold-grid').innerHTML='';$('hold-small').innerHTML='';$('hold-small').classList.remove('show');$('hold-toggle').style.display='none';
         document.querySelectorAll('.card').forEach(function(c){c.classList.remove('active')});
         $('c-'+i).classList.add('active');
         sec.scrollIntoView({behavior:'smooth',block:'start'});
@@ -188,20 +242,42 @@
         // Holdings
         fetch(BS+'/addresses/'+a.w+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
             if(!tokens||!tokens.length)return;
-            var html='<div class="hold-item native"><span class="hold-sym">ETH</span><div class="hold-r"><div class="hold-val">'+fe(a._e)+'</div><div class="hold-usd">'+fu((a._e||0)*ethPrice)+'</div></div></div>';
-            html+='<div class="hold-item native"><span class="hold-sym">WETH</span><div class="hold-r"><div class="hold-val">'+fe(a._w)+'</div><div class="hold-usd">'+fu((a._w||0)*ethPrice)+'</div></div></div>';
-            var count=0;
+            var big=[],small=[];
             tokens.forEach(function(t){
-                var tok=t.token||{},dec=parseInt(tok.decimals||18),sym=tok.symbol||'?';
-                if(sym==='WETH')return;
+                if(!t)return;
+                var tok=t.token||{},dec=parseInt(tok.decimals||18),sym=tok.symbol||'';
                 if(!sym||sym==='?'||sym.length>20)return;
-                var val;try{var b=BigInt(t.value||'0'),s=b.toString();if(s.length<=dec)val=Number(b)/Math.pow(10,dec);else val=parseFloat(s.slice(0,s.length-dec)+'.'+s.slice(s.length-dec))}catch(e){val=parseFloat(t.value||'0')/Math.pow(10,dec)}
+                var val=s2f(t.value||'0',dec);
                 if(val<0.001)return;
-                var rate=tok.exchange_rate?parseFloat(tok.exchange_rate):null,usd=rate?val*rate:null;
-                html+='<div class="hold-item"><span class="hold-sym">'+sym+'</span><div class="hold-r"><div class="hold-val">'+fmtN(val)+'</div>'+(usd&&usd>0.01?'<div class="hold-usd">'+fu(usd)+'</div>':'')+'</div></div>';
-                count++;
+                var rate=tok.exchange_rate?parseFloat(tok.exchange_rate):null;
+                // Use fetched token price for the agent's native token
+                var addr=(tok.address_hash||tok.address||'').toLowerCase();
+                if(a.tc&&addr===a.tc.toLowerCase()&&a._tp>0)rate=a._tp;
+                if(sym==='WETH')rate=ethPrice;
+                var usd=rate?val*rate:null;
+                var item={sym:sym,val:val,usd:usd};
+                if(usd&&usd>=10)big.push(item);else small.push(item);
             });
-            if(count>0||a._e>0||a._w>0){$('hold-grid').innerHTML=html;$('hold-sec').style.display='block'}
+            big.sort(function(a,b){return(b.usd||0)-(a.usd||0)});
+            small.sort(function(a,b){return(b.usd||0)-(a.usd||0)||b.val-a.val});
+
+            function ri(item){
+                return'<div class="hold-item"><span class="hold-sym">'+item.sym+'</span><div class="hold-r"><div class="hold-val">'+fmtN(item.val)+'</div>'+(item.usd&&item.usd>0.01?'<div class="hold-usd">'+fu(item.usd)+'</div>':'')+'</div></div>';
+            }
+
+            if(big.length>0||small.length>0){
+                var html='';big.forEach(function(item){html+=ri(item)});
+                $('hold-grid').innerHTML=html;
+                if(small.length>0){
+                    var sh='';small.forEach(function(item){sh+=ri(item)});
+                    $('hold-small').innerHTML=sh;
+                    var toggle=$('hold-toggle');
+                    toggle.style.display='inline-block';
+                    toggle.textContent='Show '+small.length+' smaller holdings';
+                    toggle.onclick=function(){var el=$('hold-small');if(el.classList.contains('show')){el.classList.remove('show');toggle.textContent='Show '+small.length+' smaller holdings'}else{el.classList.add('show');toggle.textContent='Hide smaller holdings'}};
+                }
+                $('hold-sec').style.display='block';
+            }
         }).catch(function(){});
 
         // Transactions
@@ -211,7 +287,7 @@
         ]).then(function(res){
             var all=[];
             (res[0].items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out';all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash)})});
-            (res[1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';all.push({hash:tx.transaction_hash||tx.tx_hash||tx.hash||"",ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true})});
+            (res[1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';if(!sym||sym==='?'||sym.length>20)return;var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';all.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true})});
             var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
             all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});
             var show=all.slice(0,15);
@@ -220,8 +296,9 @@
             show.forEach(function(tx){
                 var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPrice:0,sign=tx.dir==='in'?'+':'-';
                 var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';
-                var amt=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value.toFixed(4);
-                html+='<a class="tx-row" href="https://basescan.org/tx/'+tx.hash+'" target="_blank"><span class="tx-dir '+tx.dir+'">'+(tx.dir==='in'?'IN':'OUT')+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div><div class="tx-amt '+tx.dir+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>';
+                var amt=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);
+                var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';
+                html+='<a class="tx-row" href="'+link+'" target="_blank"><span class="tx-dir '+tx.dir+'">'+(tx.dir==='in'?'IN':'OUT')+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div><div class="tx-amt '+tx.dir+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>';
             });
             $('det-txs').innerHTML=html;
         }).catch(function(e){$('det-txs').innerHTML='<div class="load-i" style="color:var(--red)">Failed: '+e.message+'</div>'});
