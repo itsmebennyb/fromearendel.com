@@ -92,6 +92,17 @@
 
         .loading-inline { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); padding: 24px; text-align: center; }
 
+        /* Token Holdings */
+        .holdings-section { margin-bottom: 24px; }
+        .holdings-section h3 { font-family: var(--font-heading); font-size: 1.1rem; color: var(--gold); margin-bottom: 12px; font-weight: 700; }
+        .holdings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+        .holding-item { background: var(--bg-card); border: 1px solid #2a2a40; border-radius: 6px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+        .holding-sym { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; color: var(--white); }
+        .holding-amt { text-align: right; }
+        .holding-val { font-family: var(--font-mono); font-size: 0.8rem; color: var(--white); }
+        .holding-usd { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); }
+        .holding-native { border-color: rgba(245,197,66,0.2); }
+
         /* Footer */
         footer { text-align: center; padding: 40px 0; border-top: 1px solid #222; color: var(--muted); font-size: 0.85rem; }
         footer .byline { margin-top: 8px; font-size: 0.75rem; color: #555; }
@@ -138,6 +149,10 @@
                 <button class="detail-close" id="detail-close">Close &times;</button>
             </div>
             <div class="detail-balance" id="detail-balance"></div>
+            <div class="holdings-section" id="holdings-section" style="display:none;">
+                <h3>Token Holdings</h3>
+                <div class="holdings-grid" id="holdings-grid"></div>
+            </div>
             <div class="tx-section">
                 <h3>Recent Activity</h3>
                 <div id="detail-txs" class="tx-list"></div>
@@ -271,6 +286,36 @@
 
             // Scroll to detail
             section.scrollIntoView({behavior:'smooth', block:'start'});
+
+            // Load token holdings
+            $("holdings-section").style.display = "none";
+            $("holdings-grid").innerHTML = "";
+            fetch(BLOCKSCOUT + "/addresses/" + agent.wallet + "/token-balances").then(function(r){return r.json();}).then(function(tokens) {
+                if (!tokens || !tokens.length) return;
+                var items = tokens.map(function(t) {
+                    var tok = t.token || {};
+                    var dec = parseInt(tok.decimals || 18);
+                    var val = parseInt(t.value) / Math.pow(10, dec);
+                    var rate = tok.exchange_rate ? parseFloat(tok.exchange_rate) : null;
+                    var usd = rate ? val * rate : null;
+                    var sym = tok.symbol || "?";
+                    if (sym === "WETH") return null;
+                    return { sym: sym, val: val, usd: usd, name: tok.name || sym };
+                }).filter(function(x) { return x && x.val > 0.001; });
+                items.sort(function(a, b) { return (b.usd||0) - (a.usd||0) || b.val - a.val; });
+                if (!items.length) return;
+                var html = "";
+                html += "<div class=\"holding-item holding-native\"><span class=\"holding-sym\">ETH</span><div class=\"holding-amt\"><div class=\"holding-val\">" + (agent._eth||0).toFixed(4) + "</div><div class=\"holding-usd\">" + fmtUsd((agent._eth||0)*ethPrice) + "</div></div></div>";
+                html += "<div class=\"holding-item holding-native\"><span class=\"holding-sym\">WETH</span><div class=\"holding-amt\"><div class=\"holding-val\">" + (agent._weth||0).toFixed(4) + "</div><div class=\"holding-usd\">" + fmtUsd((agent._weth||0)*ethPrice) + "</div></div></div>";
+                items.forEach(function(item) {
+                    var valStr = item.val > 1e9 ? (item.val/1e9).toFixed(2)+"B" : item.val > 1e6 ? (item.val/1e6).toFixed(2)+"M" : item.val > 1e3 ? (item.val/1e3).toFixed(1)+"K" : item.val.toFixed(2);
+                    var usdStr = item.usd && item.usd > 0.01 ? fmtUsd(item.usd) : "";
+                    html += "<div class=\"holding-item\"><span class=\"holding-sym\">" + item.sym + "</span><div class=\"holding-amt\"><div class=\"holding-val\">" + valStr + "</div>" + (usdStr ? "<div class=\"holding-usd\">" + usdStr + "</div>" : "") + "</div></div>";
+                });
+                $("holdings-grid").innerHTML = html;
+                $("holdings-section").style.display = "block";
+            }).catch(function(){});
+
 
             // Load transactions
             var wl = agent.wallet.toLowerCase();
