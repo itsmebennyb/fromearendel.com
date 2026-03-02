@@ -181,9 +181,9 @@
 
     function $(id){return document.getElementById(id)}
 
-    var MK='EAREN-91DB88DCBA00A6C8';
+    var MK=['EAREN-91DB88DCBA00A6C8','EAREN-FRIEND-A7C3E1D9','EAREN-BETA-4F8B2E6A'];
     function verifyKey(key,cb){
-        if(key.trim()===MK){cb(true);return}
+        if(MK.indexOf(key.trim())!==-1){cb(true);return}
         var fd=new FormData();
         fd.append('product_permalink',PRODUCT_PERMALINK);
         fd.append('license_key',key.trim());
@@ -214,7 +214,7 @@
         var fd=new FormData();
         fd.append('product_permalink',PRODUCT_PERMALINK);
         fd.append('license_key',stored.trim());
-        if(stored.trim()===MK){unlock(stored)}
+        if(MK.indexOf(stored.trim())!==-1){unlock(stored)}
         else{fetch('https://api.gumroad.com/v2/licenses/verify',{method:'POST',body:fd})
         .then(function(r){return r.json()})
         .then(function(d){if(d.success){unlock(stored)}else{lock()}})
