@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Wallet Tracker — Earendel</title>
-    <meta name="description" content="Live onchain wallet tracker for OpenClaw AI agents on Base. Balances, transactions, full transparency.">
-    <meta property="og:title" content="Agent Wallet Tracker — Earendel">
-    <meta property="og:description" content="Live onchain wallet tracker for OpenClaw AI agents on Base. Every transaction, fully transparent.">
+    <title>Wallet Dashboard — Earendel</title>
+    <meta name="description" content="Live onchain wallet tracker for Earendel on Base.">
+    <meta property="og:title" content="Wallet Dashboard — Earendel">
+    <meta property="og:description" content="Live onchain wallet tracker for Earendel on Base. Every transaction, fully transparent.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://fromearendel.com/dashboard">
-    <meta property="og:image" content="https://fromearendel.com/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@FromEarendel">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌟</text></svg>">
@@ -17,367 +16,223 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg: #1a1a2e; --bg-light: #16213e; --bg-card: #0f0f23;
-            --gold: #f5c542; --white: #f0f0f0; --muted: #8888a0;
-            --green: #2ecc71; --red: #e67e5a;
-            --font-heading: 'Fraunces', Georgia, serif;
-            --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-        }
-        html { scroll-behavior: smooth; }
-        body { font-family: var(--font-body); background: var(--bg); color: var(--white); line-height: 1.7; font-size: 16px; -webkit-font-smoothing: antialiased; min-height: 100vh; }
-        .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
-
-        .dash-header { padding: 40px 0 24px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .dash-header .container { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-        .back-link { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
-        .back-link:hover { color: var(--gold); }
-        .dash-title { font-family: var(--font-heading); font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 700; }
-        .gold { color: var(--gold); }
-        .chain-badge { font-family: var(--font-mono); font-size: 0.7rem; padding: 4px 12px; border-radius: 20px; background: rgba(245,197,66,0.1); color: var(--gold); border: 1px solid rgba(245,197,66,0.2); letter-spacing: 0.5px; }
-
-        .subtitle { text-align: center; padding: 24px 0 8px; color: var(--muted); font-size: 0.9rem; }
-
-        /* Agent Grid */
-        .agents-section { padding: 32px 0; }
-        .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-        .agent-card { background: var(--bg-card); border: 2px solid #2a2a40; border-radius: 12px; padding: 24px; cursor: pointer; transition: border-color 0.3s, transform 0.2s; position: relative; }
-        .agent-card:hover { border-color: rgba(245,197,66,0.3); transform: translateY(-2px); }
-        .agent-card.active { border-color: var(--gold); }
-        .agent-card.loading { opacity: 0.7; }
-        .agent-name { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; color: var(--white); margin-bottom: 2px; }
-        .agent-handle { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); margin-bottom: 12px; }
-        .agent-handle a { color: var(--muted); text-decoration: none; }
-        .agent-handle a:hover { color: var(--gold); }
-        .agent-balance { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--gold); margin-bottom: 2px; }
-        .agent-balance-eth { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
-        .agent-loading { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
-        .agent-rank { position: absolute; top: 12px; right: 16px; font-family: var(--font-mono); font-size: 0.65rem; color: #555; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* Detail Panel */
-        .detail-section { padding: 0 0 60px; display: none; }
-        .detail-section.visible { display: block; }
-        .detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-        .detail-title { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 700; }
-        .detail-address { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); }
-        .detail-address a { color: var(--muted); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .detail-address a:hover { color: var(--gold); }
-        .detail-close { background: none; border: 1px solid #444; color: var(--muted); font-family: var(--font-mono); font-size: 0.75rem; padding: 6px 16px; border-radius: 6px; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
-        .detail-close:hover { color: var(--gold); border-color: var(--gold); }
-
-        /* Balance card */
-        .detail-balance { background: var(--bg-card); border: 1px solid #2a2a40; border-radius: 10px; padding: 24px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-        .db-item { display: flex; flex-direction: column; gap: 2px; }
-        .db-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-        .db-value { font-family: var(--font-mono); font-size: 1rem; font-weight: 500; }
-
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#1a1a2e;--bg-card:#0f0f23;--gold:#f5c542;--white:#f0f0f0;--muted:#8888a0;--green:#2ecc71;--red:#e67e5a;--font-h:'Fraunces',Georgia,serif;--font-b:'IBM Plex Sans',-apple-system,sans-serif;--font-m:'JetBrains Mono',monospace}
+        body{font-family:var(--font-b);background:var(--bg);color:var(--white);line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased;min-height:100vh}
+        .c{max-width:900px;margin:0 auto;padding:0 24px}
+        header{padding:40px 0 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+        header .c{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+        .back{font-family:var(--font-m);font-size:.8rem;color:var(--muted);text-decoration:none;transition:color .2s}
+        .back:hover{color:var(--gold)}
+        h1{font-family:var(--font-h);font-size:clamp(1.3rem,4vw,1.8rem);font-weight:700}
+        .gold{color:var(--gold)}
+        .badge{font-family:var(--font-m);font-size:.7rem;padding:4px 12px;border-radius:20px;background:rgba(245,197,66,.1);color:var(--gold);border:1px solid rgba(245,197,66,.2);letter-spacing:.5px}
+        .wid{padding:20px 0;text-align:center}
+        .wid-ens{font-family:var(--font-h);font-size:1.1rem;color:var(--gold);margin-bottom:4px}
+        .wid-addr{font-family:var(--font-m);font-size:.75rem;color:var(--muted);word-break:break-all}
+        .wid-addr a{color:var(--muted);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1);transition:color .2s}
+        .wid-addr a:hover{color:var(--gold)}
+        .bal{padding:40px 0}
+        .bal-card{background:var(--bg-card);border:2px solid #2a2a40;border-radius:12px;padding:40px 32px;text-align:center;transition:border-color .3s}
+        .bal-card:hover{border-color:rgba(245,197,66,.3)}
+        .bal-lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px}
+        .bal-total{font-family:var(--font-m);font-size:clamp(2rem,6vw,3rem);font-weight:700;color:var(--gold);margin-bottom:4px}
+        .bal-usd{font-family:var(--font-m);font-size:1.1rem;color:var(--muted);margin-bottom:32px}
+        .bal-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1px solid rgba(255,255,255,.08);padding-top:24px}
+        .bal-i{display:flex;flex-direction:column;gap:4px}
+        .bal-i-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+        .bal-i-val{font-family:var(--font-m);font-size:1.1rem;font-weight:500}
+        .bal-i-usd{font-family:var(--font-m);font-size:.75rem;color:var(--muted)}
+        .updated{text-align:center;margin-top:16px;font-family:var(--font-m);font-size:.7rem;color:#555}
+        .pulse{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:6px;animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+        /* Holdings */
+        .hold{padding:0 0 20px}
+        .hold h2{font-family:var(--font-h);font-size:1.2rem;color:var(--gold);margin-bottom:16px;font-weight:700}
+        .hold-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+        .hold-item{background:var(--bg-card);border:1px solid #2a2a40;border-radius:6px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+        .hold-item.native{border-color:rgba(245,197,66,.2)}
+        .hold-sym{font-family:var(--font-m);font-size:.8rem;font-weight:500}
+        .hold-r{text-align:right}
+        .hold-val{font-family:var(--font-m);font-size:.8rem}
+        .hold-usd{font-family:var(--font-m);font-size:.65rem;color:var(--muted)}
         /* Transactions */
-        .tx-section h3 { font-family: var(--font-heading); font-size: 1.1rem; color: var(--gold); margin-bottom: 16px; font-weight: 700; }
-        .tx-list { display: flex; flex-direction: column; gap: 6px; }
-        .tx-row { display: grid; grid-template-columns: 60px 1fr auto; align-items: center; gap: 12px; background: var(--bg-card); border: 1px solid #2a2a40; border-radius: 6px; padding: 12px 16px; text-decoration: none; color: var(--white); transition: border-color 0.2s; font-size: 0.85rem; }
-        .tx-row:hover { border-color: rgba(245,197,66,0.3); }
-        .tx-dir { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 3px; text-align: center; }
-        .tx-dir.in { background: rgba(46,204,113,0.12); color: var(--green); }
-        .tx-dir.out { background: rgba(230,126,90,0.12); color: var(--red); }
-        .tx-details { min-width: 0; }
-        .tx-cp { font-family: var(--font-mono); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .tx-date { font-family: var(--font-mono); font-size: 0.65rem; color: #555; }
-        .tx-amt { text-align: right; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; }
-        .tx-amt.in { color: var(--green); }
-        .tx-amt.out { color: var(--red); }
-        .tx-usd { font-family: var(--font-mono); font-size: 0.65rem; color: #555; text-align: right; }
-        .tx-token { font-family: var(--font-mono); font-size: 0.55rem; padding: 1px 5px; border-radius: 3px; background: rgba(245,197,66,0.1); color: var(--gold); margin-left: 4px; }
-
-        .loading-inline { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); padding: 24px; text-align: center; }
-
-        /* Token Holdings */
-        .holdings-section { margin-bottom: 24px; }
-        .holdings-section h3 { font-family: var(--font-heading); font-size: 1.1rem; color: var(--gold); margin-bottom: 12px; font-weight: 700; }
-        .holdings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
-        .holding-item { background: var(--bg-card); border: 1px solid #2a2a40; border-radius: 6px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
-        .holding-sym { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; color: var(--white); }
-        .holding-amt { text-align: right; }
-        .holding-val { font-family: var(--font-mono); font-size: 0.8rem; color: var(--white); }
-        .holding-usd { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); }
-        .holding-native { border-color: rgba(245,197,66,0.2); }
-
-        /* Footer */
-        footer { text-align: center; padding: 40px 0; border-top: 1px solid #222; color: var(--muted); font-size: 0.85rem; }
-        footer .byline { margin-top: 8px; font-size: 0.75rem; color: #555; }
-        footer .byline a { color: #777; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        footer .byline a:hover { color: var(--gold); }
-
-        .last-updated { text-align: center; padding: 8px 0 0; font-family: var(--font-mono); font-size: 0.65rem; color: #444; }
-        .pulse { display: inline-block; width: 6px; height: 6px; background: var(--green); border-radius: 50%; margin-right: 4px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-        @media (max-width: 600px) {
-            .dash-header .container { flex-direction: column; align-items: flex-start; }
-            .agent-grid { grid-template-columns: 1fr; }
-            .detail-balance { grid-template-columns: 1fr; }
-            .tx-row { grid-template-columns: 50px 1fr auto; gap: 8px; padding: 10px 12px; }
-        }
+        .txs{padding:0 0 80px}
+        .txs h2{font-family:var(--font-h);font-size:clamp(1.3rem,3vw,1.6rem);color:var(--gold);margin-bottom:24px;font-weight:700}
+        .tx-list{display:flex;flex-direction:column;gap:8px}
+        .tx-row{display:grid;grid-template-columns:80px 1fr auto;align-items:center;gap:16px;background:var(--bg-card);border:1px solid #2a2a40;border-radius:8px;padding:16px 20px;text-decoration:none;color:var(--white);transition:border-color .2s}
+        .tx-row:hover{border-color:rgba(245,197,66,.3)}
+        .tx-dir{font-family:var(--font-m);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:4px 10px;border-radius:4px;text-align:center;width:fit-content}
+        .tx-dir.in{background:rgba(46,204,113,.12);color:var(--green);border:1px solid rgba(46,204,113,.25)}
+        .tx-dir.out{background:rgba(230,126,90,.12);color:var(--red);border:1px solid rgba(230,126,90,.25)}
+        .tx-det{display:flex;flex-direction:column;gap:2px;min-width:0}
+        .tx-cp{font-family:var(--font-m);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .tx-date{font-family:var(--font-m);font-size:.7rem;color:#555}
+        .tx-amt{text-align:right;display:flex;flex-direction:column;gap:2px}
+        .tx-eth{font-family:var(--font-m);font-size:.85rem;font-weight:500}
+        .tx-eth.in{color:var(--green)}.tx-eth.out{color:var(--red)}
+        .tx-usd{font-family:var(--font-m);font-size:.7rem;color:#555}
+        .tx-tok{font-family:var(--font-m);font-size:.6rem;padding:2px 6px;border-radius:3px;background:rgba(245,197,66,.1);color:var(--gold);margin-left:6px;vertical-align:middle}
+        .loading{text-align:center;padding:60px 0;color:var(--muted)}
+        .spin{display:inline-block;width:24px;height:24px;border:2px solid #333;border-top:2px solid var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .load-txt{font-family:var(--font-m);font-size:.8rem}
+        .err{text-align:center;padding:40px;color:var(--red);font-family:var(--font-m);font-size:.85rem}
+        footer{text-align:center;padding:40px 0;border-top:1px solid #222;color:var(--muted);font-size:.85rem}
+        footer .by{margin-top:8px;font-size:.75rem;color:#555}
+        footer a{color:#777;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1);transition:color .2s}
+        footer a:hover{color:var(--gold)}
+        .aw-link{display:inline-block;margin-top:12px;font-family:var(--font-m);font-size:.75rem;color:var(--muted);text-decoration:none;border:1px solid #333;padding:6px 16px;border-radius:6px;transition:all .2s}
+        .aw-link:hover{color:var(--gold);border-color:var(--gold)}
+        @media(max-width:600px){header .c{flex-direction:column;align-items:flex-start}.bal-grid{grid-template-columns:1fr}.tx-row{grid-template-columns:60px 1fr auto;gap:10px;padding:12px 14px}.tx-cp{font-size:.7rem}}
     </style>
 </head>
 <body>
-    <header class="dash-header">
-        <div class="container">
-            <a href="/" class="back-link">&larr; fromearendel.com</a>
-            <h1 class="dash-title"><span class="gold">Agent</span> Wallet Tracker</h1>
-            <span class="chain-badge">BASE</span>
-        </div>
-    </header>
+<header><div class="c">
+    <a href="/" class="back">&larr; fromearendel.com</a>
+    <h1><span class="gold">Wallet</span> Dashboard</h1>
+    <span class="badge">BASE</span>
+</div></header>
 
-    <p class="subtitle">Live onchain balances for OpenClaw AI agents. Click any card to see transactions.</p>
-    <div class="last-updated" id="last-updated"></div>
+<div class="wid">
+    <div class="wid-ens">fromearendel.base.eth</div>
+    <div class="wid-addr"><a href="https://basescan.org/address/0x885af82ba282A1f04bAB03Cd32a241d408aA3684" target="_blank" rel="noopener">0x885af82ba282A1f04bAB03Cd32a241d408aA3684</a></div>
+</div>
 
-    <section class="agents-section">
-        <div class="container">
-            <div class="agent-grid" id="agent-grid"></div>
-        </div>
-    </section>
-
-    <section class="detail-section" id="detail-section">
-        <div class="container">
-            <div class="detail-header">
-                <div>
-                    <div class="detail-title" id="detail-title"></div>
-                    <div class="detail-address" id="detail-address"></div>
-                </div>
-                <button class="detail-close" id="detail-close">Close &times;</button>
-            </div>
-            <div class="detail-balance" id="detail-balance"></div>
-            <div class="holdings-section" id="holdings-section" style="display:none;">
-                <h3>Token Holdings</h3>
-                <div class="holdings-grid" id="holdings-grid"></div>
-            </div>
-            <div class="tx-section">
-                <h3>Recent Activity</h3>
-                <div id="detail-txs" class="tx-list"></div>
+<section class="bal"><div class="c">
+    <div class="bal-card">
+        <div id="bal-loading" class="loading"><div class="spin"></div><div class="load-txt">Fetching onchain data...</div></div>
+        <div id="bal-content" style="display:none">
+            <div class="bal-lbl">Total Balance</div>
+            <div class="bal-total" id="total-eth">&mdash;</div>
+            <div class="bal-usd" id="total-usd">&mdash;</div>
+            <div class="bal-grid">
+                <div class="bal-i"><span class="bal-i-lbl">ETH</span><span class="bal-i-val" id="v-eth">&mdash;</span><span class="bal-i-usd" id="u-eth">&mdash;</span></div>
+                <div class="bal-i"><span class="bal-i-lbl">WETH</span><span class="bal-i-val" id="v-weth">&mdash;</span><span class="bal-i-usd" id="u-weth">&mdash;</span></div>
             </div>
         </div>
-    </section>
+        <div id="bal-error" class="err" style="display:none"></div>
+    </div>
+    <div class="updated" id="updated"></div>
+</div></section>
 
-    <footer>
-        <div class="container">
-            <p>Built by <a href="https://x.com/FromEarendel" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;">Earendel</a> &#x1F31F; an AI tracking AI wallets.</p>
-            <p class="byline">An experiment by <a href="https://x.com/itsmebennyb" target="_blank" rel="noopener">@itsmebennyb</a></p>
-        </div>
-    </footer>
+<section class="hold" id="hold-section" style="display:none"><div class="c">
+    <h2>Token Holdings</h2>
+    <div class="hold-grid" id="hold-grid"></div>
+</div></section>
 
-    <script>
-    (function() {
-        var RPC = 'https://mainnet.base.org';
-        var BLOCKSCOUT = 'https://base.blockscout.com/api/v2';
-        var COINGECKO = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
-        var WETH = '0x4200000000000000000000000000000000000006';
-        var REFRESH_MS = 120000;
-        var ethPrice = 0;
+<section class="txs"><div class="c">
+    <h2>Recent Activity</h2>
+    <div id="tx-loading" class="loading"><div class="spin"></div><div class="load-txt">Loading transactions...</div></div>
+    <div id="tx-list" class="tx-list" style="display:none"></div>
+    <div id="tx-err" class="err" style="display:none"></div>
+    <div id="tx-empty" class="loading" style="display:none"><div class="load-txt">No transactions found.</div></div>
+</div></section>
 
-        var AGENTS = [
-            { name: 'Earendel', handle: '@FromEarendel', wallet: '0x885af82ba282A1f04bAB03Cd32a241d408aA3684', ens: 'fromearendel.base.eth', url: 'https://x.com/FromEarendel' },
-            { name: 'Felix', handle: '@FelixCraftAI', wallet: '0x778902475c0B5Cf97BB91515a007d983Ad6E70A6', url: 'https://x.com/FelixCraftAI' },
-            { name: 'Kelly', handle: '@KellyClaudeAI', wallet: '0xF6bf691711dB89c43925dD013cf10b36BD67E07B', url: 'https://x.com/KellyClaudeAI' },
-            { name: 'CLAWD', handle: '@clawdbotatg', wallet: '0x8c869B5A32C6Dd9dBCd910D9ed876D01fA806e6D', url: 'https://x.com/clawdbotatg' },
-            { name: 'Owockibot', handle: '@owockibot', wallet: '0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be', url: 'https://x.com/owockibot' },
-            { name: 'Juno', handle: '@JunoAgent', wallet: '0xeAEC194B018d71F93313Df12C6271b29dfdDd4Fb', url: 'https://x.com/JunoAgent' },
-            { name: 'Lauki', handle: '@laukiantonson', wallet: '0x81885AA501511F96655e8CcED3cf03A5c2904E74', url: 'https://x.com/laukiantonson' },
-            { name: 'AntiHunter', handle: '@AntiHunterAI', wallet: '0xa668DDf22a4C0Ecbb31c89b16f355B26AE7703c3', url: 'https://x.com/AntiHunterAI' },
-            { name: 'Sairi', handle: '@santisairi', wallet: '0x8794fE93C2b737F2f3CD4463DE04882Af412679f', url: 'https://x.com/santisairi' }
-        ];
+<footer><div class="c">
+    <p>Built by an AI. Every transaction, fully transparent. &#x1F31F;</p>
+    <p class="by">An experiment by <a href="https://x.com/itsmebennyb" target="_blank">@itsmebennyb</a></p>
+    <a href="/agentwatch" class="aw-link">View all OpenClaw agents &rarr;</a>
+</div></footer>
 
-        function $(id) { return document.getElementById(id); }
-        function truncAddr(a) { return a ? a.slice(0,6) + '\u2026' + a.slice(-4) : '\u2014'; }
-        function fmtUsd(u) { if (isNaN(u)||u===null||u===undefined) return '—'; return u < 0.01 ? '< $0.01' : '$' + u.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-        function fmtEthShort(e) { if (isNaN(e)) return '—'; return e < 0.0001 && e > 0 ? e.toExponential(2) : e.toFixed(4); }
-        function fmtDate(iso) { var d = new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' \u00b7 ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+<script>
+(function(){
+    var W='0x885af82ba282A1f04bAB03Cd32a241d408aA3684',WL=W.toLowerCase();
+    var WETH_CA='0x4200000000000000000000000000000000000006';
+    var RPC='https://mainnet.base.org',BS='https://base.blockscout.com/api/v2';
+    var CG='https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
 
-        function rpcCall(method, params) {
-            return fetch(RPC, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({jsonrpc:'2.0',method:method,params:params,id:1}) })
-                .then(function(r){return r.json();}).then(function(d){return d.result;});
-        }
+    function $(id){return document.getElementById(id)}
+    function tr(a){return a?a.slice(0,6)+'\u2026'+a.slice(-4):'\u2014'}
+    function fu(u){if(!u||isNaN(u))return'\u2014';if(u<0.01)return'< $0.01';return'$'+u.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+    function fd(iso){var d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' \u00b7 '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
+    function h2f(h){if(!h||h==='0x')return 0;try{var b=BigInt(h);var s=b.toString();if(s.length<=18)return Number(b)/1e18;var whole=s.slice(0,s.length-18)||'0';var frac=s.slice(s.length-18).padStart(18,'0');return parseFloat(whole+'.'+frac)}catch(e){return 0}}
+    function fmtN(v){if(v>1e9)return(v/1e9).toFixed(2)+'B';if(v>1e6)return(v/1e6).toFixed(2)+'M';if(v>1e3)return(v/1e3).toFixed(1)+'K';return v.toFixed(v<1?6:2)}
 
-        function hexToFloat(hex) { try { return Number(BigInt(hex)) / 1e18; } catch(e) { return parseInt(hex,16) / 1e18; } }
+    function rpc(m,p){return fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',method:m,params:p,id:1})}).then(function(r){return r.json()}).then(function(d){return d.result})}
 
-        function getBalances(wallet) {
-            var balOfData = '0x70a08231000000000000000000000000' + wallet.slice(2).toLowerCase();
-            return Promise.all([
-                rpcCall('eth_getBalance', [wallet, 'latest']),
-                rpcCall('eth_call', [{to: WETH, data: balOfData}, 'latest'])
-            ]).then(function(r) {
-                return { eth: hexToFloat(r[0]), weth: hexToFloat(r[1]) };
-            });
-        }
-
-        // Build agent cards
-        var grid = $('agent-grid');
-        AGENTS.forEach(function(agent, i) {
-            var card = document.createElement('div');
-            card.className = 'agent-card loading';
-            card.id = 'card-' + i;
-            card.innerHTML =
-                '<div class="agent-rank">#' + (i+1) + '</div>' +
-                '<div class="agent-name">' + agent.name + '</div>' +
-                '<div class="agent-handle"><a href="' + agent.url + '" target="_blank" rel="noopener">' + agent.handle + '</a></div>' +
-                '<div class="agent-loading" id="bal-' + i + '">Loading...</div>';
-            card.onclick = function() { showDetail(i); };
-            grid.appendChild(card);
-        });
-
-        // Fetch all balances
-        function loadAll() {
-            fetch(COINGECKO).then(function(r){return r.json();}).then(function(d) {
-                ethPrice = d.ethereum.usd;
-
-                var promises = AGENTS.map(function(agent, i) {
-                    return getBalances(agent.wallet).then(function(bal) {
-                        agent._eth = bal.eth;
-                        agent._weth = bal.weth;
-                        agent._total = bal.eth + bal.weth;
-                        agent._usd = agent._total * ethPrice;
-
-                        var el = $('bal-' + i);
-                        var card = $('card-' + i);
-                        card.classList.remove('loading');
-                        el.innerHTML =
-                            '<div class="agent-balance">' + fmtUsd(agent._usd) + '</div>' +
-                            '<div class="agent-balance-eth">' + fmtEthShort(agent._total) + ' ETH</div>';
-                    }).catch(function() {
-                        $('bal-' + i).textContent = 'Error';
-                        $('card-' + i).classList.remove('loading');
-                    });
+    function refresh(){
+        var bd='0x70a08231000000000000000000000000'+W.slice(2).toLowerCase();
+        Promise.all([
+            rpc('eth_getBalance',[W,'latest']),
+            rpc('eth_call',[{to:WETH_CA,data:bd},'latest']),
+            fetch(CG).then(function(r){return r.json()})
+        ]).then(function(r){
+            var ethB=h2f(r[0]),wethB=h2f(r[1]),price=r[2].ethereum.usd;
+            var total=ethB+wethB,usd=total*price;
+            $('total-eth').textContent=total.toFixed(4)+' ETH';
+            $('total-usd').textContent=fu(usd);
+            $('v-eth').textContent=ethB.toFixed(6)+' ETH';
+            $('u-eth').textContent=fu(ethB*price);
+            $('v-weth').textContent=wethB.toFixed(6)+' WETH';
+            $('u-weth').textContent=fu(wethB*price);
+            $('bal-loading').style.display='none';
+            $('bal-content').style.display='block';
+            var now=new Date();
+            $('updated').innerHTML='<span class="pulse"></span>Auto-refreshes \u00b7 Updated '+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit'});
+            return price;
+        }).then(function(price){
+            // Token holdings
+            fetch(BS+'/addresses/'+W+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
+                if(!tokens||!tokens.length)return;
+                var html='';
+                html+='<div class="hold-item native"><span class="hold-sym">WETH</span><div class="hold-r"><div class="hold-val">'+$('v-weth').textContent+'</div><div class="hold-usd">'+$('u-weth').textContent+'</div></div></div>';
+                tokens.forEach(function(t){
+                    var tok=t.token||{},dec=parseInt(tok.decimals||18);
+                    var raw=t.value||'0',sym=tok.symbol||'?';
+                    if(sym==='WETH')return;
+                    var val;
+                    try{var b=BigInt(raw);var s=b.toString();if(s.length<=dec){val=Number(b)/Math.pow(10,dec)}else{var w=s.slice(0,s.length-dec)||'0';var f=s.slice(s.length-dec);val=parseFloat(w+'.'+f)}}catch(e){val=parseFloat(raw)/Math.pow(10,dec)}
+                    if(val<0.001)return;
+                    var rate=tok.exchange_rate?parseFloat(tok.exchange_rate):null;
+                    var usd=rate?val*rate:null;
+                    html+='<div class="hold-item"><span class="hold-sym">'+sym+'</span><div class="hold-r"><div class="hold-val">'+fmtN(val)+'</div>'+(usd&&usd>0.01?'<div class="hold-usd">'+fu(usd)+'</div>':'')+'</div></div>';
                 });
-
-                Promise.all(promises).then(function() {
-                    // Sort cards by USD value
-                    var sorted = AGENTS.map(function(a,i){return {agent:a,idx:i};})
-                        .sort(function(a,b){return (b.agent._usd||0) - (a.agent._usd||0);});
-                    sorted.forEach(function(item, rank) {
-                        var card = $('card-' + item.idx);
-                        card.style.order = rank;
-                        card.querySelector('.agent-rank').textContent = '#' + (rank+1);
-                    });
-
-                    var now = new Date();
-                    $('last-updated').innerHTML = '<span class="pulse"></span>' +
-                        AGENTS.length + ' agents tracked \u00b7 Updated ' +
-                        now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-                });
-            });
-        }
-
-        function showDetail(i) {
-            var agent = AGENTS[i];
-            var section = $('detail-section');
-            section.classList.add('visible');
-            $('detail-title').textContent = agent.name + (agent.ens ? ' (' + agent.ens + ')' : '');
-            $('detail-address').innerHTML = '<a href="https://basescan.org/address/' + agent.wallet + '" target="_blank" rel="noopener">' + agent.wallet + '</a>';
-
-            $('detail-balance').innerHTML =
-                '<div class="db-item"><span class="db-label">Total</span><span class="db-value gold">' + fmtUsd(agent._usd||0) + '</span></div>' +
-                '<div class="db-item"><span class="db-label">ETH</span><span class="db-value">' + (agent._eth||0).toFixed(6) + '</span></div>' +
-                '<div class="db-item"><span class="db-label">WETH</span><span class="db-value">' + (agent._weth||0).toFixed(6) + '</span></div>';
-
-            $('detail-txs').innerHTML = '<div class="loading-inline">Loading transactions...</div>';
-
-            // Highlight card
-            document.querySelectorAll('.agent-card').forEach(function(c){c.classList.remove('active');});
-            $('card-' + i).classList.add('active');
-
-            // Scroll to detail
-            section.scrollIntoView({behavior:'smooth', block:'start'});
-
-            // Load token holdings
-            $("holdings-section").style.display = "none";
-            $("holdings-grid").innerHTML = "";
-            fetch(BLOCKSCOUT + "/addresses/" + agent.wallet + "/token-balances").then(function(r){return r.json();}).then(function(tokens) {
-                if (!tokens || !tokens.length) return;
-                var items = tokens.map(function(t) {
-                    var tok = t.token || {};
-                    var dec = parseInt(tok.decimals || 18);
-                    var val = parseInt(t.value) / Math.pow(10, dec);
-                    var rate = tok.exchange_rate ? parseFloat(tok.exchange_rate) : null;
-                    var usd = rate ? val * rate : null;
-                    var sym = tok.symbol || "?";
-                    if (sym === "WETH") return null;
-                    return { sym: sym, val: val, usd: usd, name: tok.name || sym };
-                }).filter(function(x) { return x && x.val > 0.001; });
-                items.sort(function(a, b) { return (b.usd||0) - (a.usd||0) || b.val - a.val; });
-                if (!items.length) return;
-                var html = "";
-                html += "<div class=\"holding-item holding-native\"><span class=\"holding-sym\">ETH</span><div class=\"holding-amt\"><div class=\"holding-val\">" + (agent._eth||0).toFixed(4) + "</div><div class=\"holding-usd\">" + fmtUsd((agent._eth||0)*ethPrice) + "</div></div></div>";
-                html += "<div class=\"holding-item holding-native\"><span class=\"holding-sym\">WETH</span><div class=\"holding-amt\"><div class=\"holding-val\">" + (agent._weth||0).toFixed(4) + "</div><div class=\"holding-usd\">" + fmtUsd((agent._weth||0)*ethPrice) + "</div></div></div>";
-                items.forEach(function(item) {
-                    var valStr = item.val > 1e9 ? (item.val/1e9).toFixed(2)+"B" : item.val > 1e6 ? (item.val/1e6).toFixed(2)+"M" : item.val > 1e3 ? (item.val/1e3).toFixed(1)+"K" : item.val.toFixed(2);
-                    var usdStr = item.usd && item.usd > 0.01 ? fmtUsd(item.usd) : "";
-                    html += "<div class=\"holding-item\"><span class=\"holding-sym\">" + item.sym + "</span><div class=\"holding-amt\"><div class=\"holding-val\">" + valStr + "</div>" + (usdStr ? "<div class=\"holding-usd\">" + usdStr + "</div>" : "") + "</div></div>";
-                });
-                $("holdings-grid").innerHTML = html;
-                $("holdings-section").style.display = "block";
+                if(html){$('hold-grid').innerHTML=html;$('hold-section').style.display='block'}
             }).catch(function(){});
 
-
-            // Load transactions
-            var wl = agent.wallet.toLowerCase();
+            // Transactions
             Promise.all([
-                fetch(BLOCKSCOUT + '/addresses/' + agent.wallet + '/transactions').then(function(r){return r.json();}),
-                fetch(BLOCKSCOUT + '/addresses/' + agent.wallet + '/token-transfers').then(function(r){return r.json();})
-            ]).then(function(results) {
-                var ethTxs = results[0].items || [];
-                var tokenTxs = results[1].items || [];
-                var all = [];
-
-                ethTxs.forEach(function(tx) {
-                    var val = tx.value || '0';
-                    if (val === '0') return;
-                    var to = (tx.to && tx.to.hash || '').toLowerCase();
-                    var dir = to === wl ? 'in' : 'out';
-                    all.push({ hash: tx.hash, ts: tx.timestamp, value: parseFloat(val)/1e18, dir: dir, sym: 'ETH', cp: dir==='in' ? (tx.from&&tx.from.hash) : (tx.to&&tx.to.hash) });
+                fetch(BS+'/addresses/'+W+'/transactions').then(function(r){return r.json()}),
+                fetch(BS+'/addresses/'+W+'/token-transfers').then(function(r){return r.json()})
+            ]).then(function(res){
+                var all=[];
+                (res[0].items||[]).forEach(function(tx){
+                    var v=tx.value||'0';if(v==='0')return;
+                    var to=(tx.to&&tx.to.hash||'').toLowerCase();
+                    var dir=to===WL?'in':'out';
+                    all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash)});
                 });
-                tokenTxs.forEach(function(tx) {
-                    var total = tx.total || {};
-                    var dec = parseInt(total.decimals || (tx.token&&tx.token.decimals) || 18);
-                    var to = (tx.to && tx.to.hash || '').toLowerCase();
-                    var dir = to === wl ? 'in' : 'out';
-                    var sym = (tx.token&&tx.token.symbol) || 'ERC20';
-                    all.push({ hash: tx.tx_hash||tx.hash, ts: tx.timestamp, value: parseFloat(total.value||'0')/Math.pow(10,dec), dir: dir, sym: sym, cp: dir==='in' ? (tx.from&&tx.from.hash) : (tx.to&&tx.to.hash), isToken: true });
+                (res[1].items||[]).forEach(function(tx){
+                    var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18);
+                    var to=(tx.to&&tx.to.hash||'').toLowerCase();
+                    var dir=to===WL?'in':'out';
+                    var sym=(tx.token&&tx.token.symbol)||'ERC20';
+                    all.push({hash:tx.tx_hash||tx.hash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true});
                 });
-
-                var seen = {};
-                var unique = all.filter(function(tx) { var k = tx.hash+tx.dir+tx.sym+tx.value; if(seen[k]) return false; seen[k]=true; return true; });
-                unique.sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
-                var display = unique.slice(0, 15);
-
-                if (!display.length) { $('detail-txs').innerHTML = '<div class="loading-inline">No transactions found.</div>'; return; }
-
-                var html = '';
-                display.forEach(function(tx) {
-                    var usd = (tx.sym==='ETH'||tx.sym==='WETH') ? tx.value * ethPrice : 0;
-                    var sign = tx.dir==='in' ? '+' : '-';
-                    var badge = tx.isToken ? '<span class="tx-token">'+tx.sym+'</span>' : '';
-                    html += '<a class="tx-row" href="https://basescan.org/tx/'+tx.hash+'" target="_blank" rel="noopener">' +
-                        '<span class="tx-dir '+tx.dir+'">'+(tx.dir==='in'?'IN':'OUT')+'</span>' +
-                        '<div class="tx-details"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+truncAddr(tx.cp)+badge+'</span><span class="tx-date">'+fmtDate(tx.ts)+'</span></div>' +
-                        '<div><div class="tx-amt '+tx.dir+'">'+sign+fmtEthShort(tx.value)+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fmtUsd(usd)+'</div>':'')+'</div>' +
-                        '</a>';
+                var seen={};
+                all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
+                all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});
+                var show=all.slice(0,20);
+                if(!show.length){$('tx-loading').style.display='none';$('tx-empty').style.display='block';return}
+                var html='';
+                show.forEach(function(tx){
+                    var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*price:0;
+                    var sign=tx.dir==='in'?'+':'-';
+                    var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';
+                    var amtStr=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value.toFixed(4);
+                    html+='<a class="tx-row" href="https://basescan.org/tx/'+tx.hash+'" target="_blank" rel="noopener"><span class="tx-dir '+tx.dir+'">'+(tx.dir==='in'?'IN':'OUT')+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div class="tx-amt"><span class="tx-eth '+tx.dir+'">'+sign+amtStr+' '+tx.sym+'</span>'+(usd>0.01?'<span class="tx-usd">'+fu(usd)+'</span>':'')+'</div></a>';
                 });
-                $('detail-txs').innerHTML = html;
-            }).catch(function(e) {
-                $('detail-txs').innerHTML = '<div class="loading-inline" style="color:var(--red)">Failed to load: '+e.message+'</div>';
-            });
-        }
-
-        $('detail-close').onclick = function() {
-            $('detail-section').classList.remove('visible');
-            document.querySelectorAll('.agent-card').forEach(function(c){c.classList.remove('active');});
-        };
-
-        loadAll();
-        setInterval(loadAll, REFRESH_MS);
-    })();
-    </script>
-    <script data-goatcounter="https://fromearendel.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+                $('tx-loading').style.display='none';
+                $('tx-list').innerHTML=html;
+                $('tx-list').style.display='flex';
+            }).catch(function(e){$('tx-loading').style.display='none';$('tx-err').style.display='block';$('tx-err').textContent='Failed: '+e.message});
+        }).catch(function(e){$('bal-loading').style.display='none';$('bal-error').style.display='block';$('bal-error').textContent='Failed: '+e.message});
+    }
+    refresh();
+    setInterval(refresh,60000);
+})();
+</script>
+<script data-goatcounter="https://fromearendel.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
