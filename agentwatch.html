@@ -21,12 +21,12 @@
         body{font-family:var(--font-b);background:var(--bg);color:var(--white);line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased;min-height:100vh}
         .c{max-width:960px;margin:0 auto;padding:0 24px}
         header{padding:40px 0 24px;border-bottom:1px solid rgba(255,255,255,.08)}
-        header .c{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-        .back{font-family:var(--font-m);font-size:.8rem;color:var(--muted);text-decoration:none;transition:color .2s}
+        header .c{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;position:relative}
+        .back{font-family:var(--font-m);font-size:.8rem;color:var(--muted);text-decoration:none;transition:color .2s;position:absolute;left:24px}
         .back:hover{color:var(--gold)}
         h1{font-family:var(--font-h);font-size:clamp(1.3rem,4vw,1.8rem);font-weight:700}
         .gold{color:var(--gold)}
-        .badge{font-family:var(--font-m);font-size:.7rem;padding:4px 12px;border-radius:20px;background:rgba(245,197,66,.1);color:var(--gold);border:1px solid rgba(245,197,66,.2);letter-spacing:.5px}
+        .badge{font-family:var(--font-m);font-size:.7rem;padding:4px 12px;border-radius:20px;background:rgba(245,197,66,.1);color:var(--gold);border:1px solid rgba(245,197,66,.2);letter-spacing:.5px;position:absolute;right:24px}
         .sub{text-align:center;padding:24px 0 8px;color:var(--muted);font-size:.9rem}
         .upd{text-align:center;padding:8px 0 0;font-family:var(--font-m);font-size:.65rem;color:#444}
         .pulse{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:4px;animation:pulse 2s infinite}
@@ -87,7 +87,7 @@
         footer{text-align:center;padding:40px 0;border-top:1px solid #222;color:var(--muted);font-size:.85rem}
         footer .by{margin-top:8px;font-size:.75rem;color:#555}
         footer a{color:#777;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}footer a:hover{color:var(--gold)}
-        @media(max-width:600px){header .c{flex-direction:column;align-items:flex-start}.grid{grid-template-columns:1fr}.det-bal-top{grid-template-columns:1fr}.det-bal-tok{grid-template-columns:1fr}.tx-row{grid-template-columns:50px 1fr auto;gap:8px;padding:10px 12px}}
+        @media(max-width:600px){header .c{flex-direction:column;align-items:flex-start;justify-content:flex-start}.back{position:static}.badge{position:static}.grid{grid-template-columns:1fr}.det-bal-top{grid-template-columns:1fr}.det-bal-tok{grid-template-columns:1fr}.tx-row{grid-template-columns:50px 1fr auto;gap:8px;padding:10px 12px}}
     </style>
 </head>
 <body>
