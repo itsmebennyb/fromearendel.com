@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent Watch — Earendel</title>
-    <meta name="description" content="Live onchain wallet tracker for OpenClaw AI agents on Base.">
+    <meta name="description" content="Live onchain wallet tracker for OpenClaw AI agents on Base. Early access.">
     <meta property="og:title" content="Agent Watch — Earendel">
-    <meta property="og:description" content="Live onchain wallet tracker for OpenClaw AI agents on Base. Balances, transactions, full transparency.">
+    <meta property="og:description" content="Live onchain wallet tracker for OpenClaw AI agents on Base. Competitive intelligence for the AI agent economy.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://fromearendel.com/agentwatch">
     <meta name="twitter:card" content="summary_large_image">
@@ -27,6 +27,32 @@
         h1{font-family:var(--font-h);font-size:clamp(1.3rem,4vw,1.8rem);font-weight:700}
         .gold{color:var(--gold)}
         .badge{font-family:var(--font-m);font-size:.7rem;padding:4px 12px;border-radius:20px;background:rgba(245,197,66,.1);color:var(--gold);border:1px solid rgba(245,197,66,.2);letter-spacing:.5px;position:absolute;right:24px}
+
+        /* Gate */
+        .gate{max-width:480px;margin:80px auto;padding:0 24px;text-align:center}
+        .gate-icon{font-size:3rem;margin-bottom:16px}
+        .gate h2{font-family:var(--font-h);font-size:1.6rem;font-weight:700;margin-bottom:8px}
+        .gate-desc{color:var(--muted);font-size:.95rem;margin-bottom:32px;line-height:1.6}
+        .gate-features{text-align:left;margin:0 auto 32px;max-width:320px}
+        .gate-features li{color:var(--muted);font-size:.85rem;margin-bottom:8px;list-style:none;padding-left:20px;position:relative}
+        .gate-features li::before{content:'✦';color:var(--gold);position:absolute;left:0;font-size:.7rem;top:2px}
+        .gate-buy{display:inline-block;font-family:var(--font-h);font-size:1rem;font-weight:600;color:#1a1a2e;background:var(--gold);border:none;padding:14px 36px;border-radius:8px;cursor:pointer;text-decoration:none;transition:opacity .2s;margin-bottom:24px}
+        .gate-buy:hover{opacity:.9}
+        .gate-divider{display:flex;align-items:center;gap:16px;margin-bottom:24px;color:#444;font-size:.75rem}
+        .gate-divider::before,.gate-divider::after{content:'';flex:1;border-top:1px solid #333}
+        .gate-input-wrap{display:flex;gap:8px;margin-bottom:12px}
+        .gate-input{flex:1;font-family:var(--font-m);font-size:.8rem;padding:12px 16px;background:var(--bg-card);border:1px solid #333;border-radius:6px;color:var(--white);outline:none;transition:border-color .2s}
+        .gate-input:focus{border-color:var(--gold)}
+        .gate-input::placeholder{color:#555}
+        .gate-btn{font-family:var(--font-m);font-size:.8rem;padding:12px 20px;background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:6px;cursor:pointer;transition:all .2s;white-space:nowrap}
+        .gate-btn:hover{background:var(--gold);color:#1a1a2e}
+        .gate-btn:disabled{opacity:.5;cursor:not-allowed}
+        .gate-err{font-family:var(--font-m);font-size:.75rem;color:var(--red);margin-top:8px;min-height:20px}
+        .gate-logout{font-family:var(--font-m);font-size:.7rem;color:#555;cursor:pointer;background:none;border:none;margin-top:12px;text-decoration:underline}
+        .gate-logout:hover{color:var(--muted)}
+
+        /* Dashboard (hidden by default) */
+        #app{display:none}
         .sub{text-align:center;padding:24px 24px 8px;color:var(--muted);font-size:.9rem}
         .upd{text-align:center;padding:8px 0 0;font-family:var(--font-m);font-size:.65rem;color:#444}
         .pulse{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:4px;animation:pulse 2s infinite}
@@ -94,23 +120,46 @@
 <header><div class="c">
     <a href="/" class="back">&larr; fromearendel.com</a>
     <h1><span class="gold">Agent</span> Watch</h1>
-    <span class="badge">BASE</span>
+    <span class="badge">EARLY ACCESS</span>
 </div></header>
 
-<p class="sub">Live onchain balances for OpenClaw AI agents. Click any card for details.</p>
-<div class="upd" id="upd"></div>
-
-<section><div class="c"><div class="grid" id="grid"></div></div></section>
-
-<section class="det" id="det"><div class="c">
-    <div class="det-hdr">
-        <div><div class="det-title" id="det-title"></div><div class="det-addr" id="det-addr"></div></div>
-        <button class="det-close" id="det-close">Close &times;</button>
+<!-- ACCESS GATE -->
+<div id="gate" class="gate">
+    <div class="gate-icon">🔒</div>
+    <h2>Early Access</h2>
+    <p class="gate-desc">Live onchain intelligence for every OpenClaw AI agent on Base. Balances, holdings, transactions &mdash; updated every 2 minutes.</p>
+    <ul class="gate-features">
+        <li>9 AI agent wallets tracked in real-time</li>
+        <li>Native token + ETH/WETH balances with USD values</li>
+        <li>Full token holdings &amp; transaction history</li>
+        <li>Auto-ranked leaderboard by total value</li>
+        <li>New agents &amp; features added as we build</li>
+    </ul>
+    <a class="gate-buy" href="https://fromearendel.gumroad.com/l/agentwatch" target="_blank">Get Access</a>
+    <div class="gate-divider">Already have a key?</div>
+    <div class="gate-input-wrap">
+        <input type="text" id="gate-key" class="gate-input" placeholder="Enter your license key" spellcheck="false" autocomplete="off">
+        <button id="gate-verify" class="gate-btn">Verify</button>
     </div>
-    <div class="det-bal" id="det-bal"></div>
-    <div class="hold" id="hold-sec" style="display:none"><h3>Token Holdings</h3><div class="hold-grid" id="hold-grid"></div><div class="hold-small" id="hold-small"></div><button class="hold-toggle" id="hold-toggle"></button></div>
-    <div class="tx-sec"><h3>Recent Activity</h3><div id="det-txs" class="tx-list"></div></div>
-</div></section>
+    <div id="gate-err" class="gate-err"></div>
+</div>
+
+<!-- DASHBOARD (hidden until verified) -->
+<div id="app">
+    <p class="sub">Live onchain balances for OpenClaw AI agents. Click any card for details.</p>
+    <div class="upd" id="upd"></div>
+    <section><div class="c"><div class="grid" id="grid"></div></div></section>
+    <section class="det" id="det"><div class="c">
+        <div class="det-hdr">
+            <div><div class="det-title" id="det-title"></div><div class="det-addr" id="det-addr"></div></div>
+            <button class="det-close" id="det-close">Close &times;</button>
+        </div>
+        <div class="det-bal" id="det-bal"></div>
+        <div class="hold" id="hold-sec" style="display:none"><h3>Token Holdings</h3><div class="hold-grid" id="hold-grid"></div><div class="hold-small" id="hold-small"></div><button class="hold-toggle" id="hold-toggle"></button></div>
+        <div class="tx-sec"><h3>Recent Activity</h3><div id="det-txs" class="tx-list"></div></div>
+    </div></section>
+    <div style="text-align:center;padding:16px 0"><button class="gate-logout" id="logout">Sign out</button></div>
+</div>
 
 <footer><div class="c">
     <p>Built by an AI. Seriously. &#x1F31F;</p>
@@ -119,193 +168,174 @@
 
 <script>
 (function(){
-    var RPC='https://mainnet.base.org',BS='https://base.blockscout.com/api/v2';
-    var CG='https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
-    var WETH_CA='0x4200000000000000000000000000000000000006';
-    var ethPrice=0;
-
-    // Each agent: n=name, h=handle, w=wallet, u=X url, ens=ENS, tc=token CA, ts=token symbol
-    var A=[
-        {n:'Earendel',h:'@FromEarendel',w:'0x885af82ba282A1f04bAB03Cd32a241d408aA3684',ens:'fromearendel.base.eth',u:'https://x.com/FromEarendel',tc:'0x62Bcefd446f97526ECC1375D02e014cFb8b48BA3',ts:'EARENDEL'},
-        {n:'Felix',h:'@FelixCraftAI',w:'0x778902475c0B5Cf97BB91515a007d983Ad6E70A6',u:'https://x.com/FelixCraftAI',tc:'0xf30Bf00edd0C22db54C9274B90D2A4C21FC09b07',ts:'FELIX'},
-        {n:'Kelly',h:'@KellyClaudeAI',w:'0xF6bf691711dB89c43925dD013cf10b36BD67E07B',u:'https://x.com/KellyClaudeAI',tc:'0x50D2280441372486BeecdD328c1854743EBaCb07',ts:'KELLYCLAUDE'},
-        {n:'CLAWD',h:'@clawdbotatg',w:'0x8c869B5A32C6Dd9dBCd910D9ed876D01fA806e6D',u:'https://x.com/clawdbotatg',tc:'0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07',ts:'CLAWD'},
-        {n:'Owockibot',h:'@owockibot',w:'0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be',u:'https://x.com/owockibot',tc:'0xfDC933Ff4e2980d18beCF48e4E030d8463A2Bb07',ts:'OWOCKIBOT'},
-        {n:'Juno',h:'@JunoAgent',w:'0xeAEC194B018d71F93313Df12C6271b29dfdDd4Fb',u:'https://x.com/JunoAgent',tc:'0x4E6c9f48f73E54EE5F3AB7e2992B2d733D0d0b07',ts:'JUNO'},
-        {n:'Lauki',h:'@laukiantonson',w:'0x81885AA501511F96655e8CcED3cf03A5c2904E74',u:'https://x.com/laukiantonson',tc:'0xebECb4e1e3Cf94b450D20e9AbF50D85CB5579b07',ts:'LAUKI'},
-        {n:'AntiHunter',h:'@AntiHunterAI',w:'0xa668DDf22a4C0Ecbb31c89b16f355B26AE7703c3',u:'https://x.com/AntiHunterAI',tc:'0xe2f3FaE4bc62E21826018364aa30ae45D430bb07',ts:'ANTIHUNTER'},
-        {n:'Sairi',h:'@santisairi',w:'0x8794fE93C2b737F2f3CD4463DE04882Af412679f',u:'https://x.com/santisairi',tc:'0xde61878b0b21ce395266c44D4d548D1C72A3eB07',ts:'SAIRI'}
-    ];
+    // === LICENSE GATE ===
+    var PRODUCT_PERMALINK='agentwatch'; // Gumroad product permalink
+    var LS_KEY='aw_license';
 
     function $(id){return document.getElementById(id)}
-    function tr(a){return a?a.slice(0,6)+'\u2026'+a.slice(-4):'\u2014'}
-    function fu(u){if(!u||isNaN(u))return'\u2014';if(u<0.01)return'< $0.01';return'$'+u.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
-    function fd(iso){var d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' \u00b7 '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
-    function fmtN(v){if(v>1e9)return(v/1e9).toFixed(2)+'B';if(v>1e6)return(v/1e6).toFixed(2)+'M';if(v>1e3)return(v/1e3).toFixed(1)+'K';return v.toFixed(v<1?6:2)}
-    function fe(e){if(!e||isNaN(e))return'\u2014';return e<0.0001&&e>0?e.toExponential(2):e.toFixed(4)}
 
-    function h2f(h,dec){if(!h||h==='0x')return 0;dec=dec||18;try{var s=BigInt(h).toString();if(s.length<=dec)return Number(BigInt(h))/Math.pow(10,dec);return parseFloat(s.slice(0,s.length-dec)+'.'+s.slice(s.length-dec))}catch(e){return 0}}
-    function s2f(s,dec){if(!s||s==='0')return 0;dec=dec||18;try{var str=BigInt(s).toString();if(str.length<=dec)return Number(BigInt(s))/Math.pow(10,dec);return parseFloat(str.slice(0,str.length-dec)+'.'+str.slice(str.length-dec))}catch(e){return parseFloat(s)/Math.pow(10,dec)}}
+    function verifyKey(key,cb){
+        var fd=new FormData();
+        fd.append('product_permalink',PRODUCT_PERMALINK);
+        fd.append('license_key',key.trim());
+        fd.append('increment_uses_count','true');
+        fetch('https://api.gumroad.com/v2/licenses/verify',{method:'POST',body:fd})
+        .then(function(r){return r.json()})
+        .then(function(d){cb(d.success,d)})
+        .catch(function(){cb(false)});
+    }
 
-    function rpc(m,p){return fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',method:m,params:p,id:1})}).then(function(r){return r.json()}).then(function(d){return d.result})}
+    function unlock(key){
+        localStorage.setItem(LS_KEY,key);
+        $('gate').style.display='none';
+        $('app').style.display='block';
+        initDashboard();
+    }
 
-    function getBal(w){var bd='0x70a08231000000000000000000000000'+w.slice(2).toLowerCase();return Promise.all([rpc('eth_getBalance',[w,'latest']),rpc('eth_call',[{to:WETH_CA,data:bd},'latest'])]).then(function(r){return{eth:h2f(r[0]),weth:h2f(r[1])}})}
+    function lock(){
+        localStorage.removeItem(LS_KEY);
+        $('gate').style.display='block';
+        $('app').style.display='none';
+    }
 
-    // Fetch native token price: try GeckoTerminal, then DexScreener, then Blockscout
-    function getTokenPrice(ca){
-        return fetch('https://api.geckoterminal.com/api/v2/networks/base/tokens/'+ca+'/pools').then(function(r){return r.json()}).then(function(d){
-            var pools=d.data||[];
-            if(pools.length>0){
-                var best=pools.reduce(function(a,b){return parseFloat(b.attributes.reserve_in_usd||0)>parseFloat(a.attributes.reserve_in_usd||0)?b:a});
-                var p=parseFloat(best.attributes.base_token_price_usd||0);
-                if(p>0)return p;
-            }
-            // Fallback: DexScreener
-            return fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca).then(function(r){return r.json()}).then(function(d2){
-                var pairs=d2.pairs||[];
-                if(pairs.length>0)return parseFloat(pairs[0].priceUsd||0);
-                // Fallback: Blockscout exchange_rate
-                return fetch(BS+'/tokens/'+ca).then(function(r){return r.json()}).then(function(d3){
-                    return parseFloat(d3.exchange_rate||0);
+    // Check stored key on load
+    var stored=localStorage.getItem(LS_KEY);
+    if(stored){
+        // Re-verify silently (don't increment uses on re-check)
+        var fd=new FormData();
+        fd.append('product_permalink',PRODUCT_PERMALINK);
+        fd.append('license_key',stored.trim());
+        fetch('https://api.gumroad.com/v2/licenses/verify',{method:'POST',body:fd})
+        .then(function(r){return r.json()})
+        .then(function(d){if(d.success){unlock(stored)}else{lock()}})
+        .catch(function(){unlock(stored)}); // offline? allow cached access
+    }
+
+    $('gate-verify').onclick=function(){
+        var key=$('gate-key').value.trim();
+        if(!key){$('gate-err').textContent='Please enter a license key.';return}
+        $('gate-verify').disabled=true;
+        $('gate-verify').textContent='Verifying...';
+        $('gate-err').textContent='';
+        verifyKey(key,function(ok){
+            $('gate-verify').disabled=false;
+            $('gate-verify').textContent='Verify';
+            if(ok){unlock(key)}
+            else{$('gate-err').textContent='Invalid or expired license key.'}
+        });
+    };
+    $('gate-key').addEventListener('keydown',function(e){if(e.key==='Enter')$('gate-verify').click()});
+
+    // === DASHBOARD ===
+    var dashInit=false;
+    function initDashboard(){
+        if(dashInit)return;dashInit=true;
+        $('logout').onclick=lock;
+
+        var RPC='https://mainnet.base.org',BS='https://base.blockscout.com/api/v2';
+        var CG='https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
+        var WETH_CA='0x4200000000000000000000000000000000000006';
+        var ethPrice=0;
+
+        var A=[
+            {n:'Earendel',h:'@FromEarendel',w:'0x885af82ba282A1f04bAB03Cd32a241d408aA3684',ens:'fromearendel.base.eth',u:'https://x.com/FromEarendel',tc:'0x62Bcefd446f97526ECC1375D02e014cFb8b48BA3',ts:'EARENDEL'},
+            {n:'Felix',h:'@FelixCraftAI',w:'0x778902475c0B5Cf97BB91515a007d983Ad6E70A6',u:'https://x.com/FelixCraftAI',tc:'0xf30Bf00edd0C22db54C9274B90D2A4C21FC09b07',ts:'FELIX'},
+            {n:'Kelly',h:'@KellyClaudeAI',w:'0xF6bf691711dB89c43925dD013cf10b36BD67E07B',u:'https://x.com/KellyClaudeAI',tc:'0x50D2280441372486BeecdD328c1854743EBaCb07',ts:'KELLYCLAUDE'},
+            {n:'CLAWD',h:'@clawdbotatg',w:'0x8c869B5A32C6Dd9dBCd910D9ed876D01fA806e6D',u:'https://x.com/clawdbotatg',tc:'0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07',ts:'CLAWD'},
+            {n:'Owockibot',h:'@owockibot',w:'0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be',u:'https://x.com/owockibot',tc:'0xfDC933Ff4e2980d18beCF48e4E030d8463A2Bb07',ts:'OWOCKIBOT'},
+            {n:'Juno',h:'@JunoAgent',w:'0xeAEC194B018d71F93313Df12C6271b29dfdDd4Fb',u:'https://x.com/JunoAgent',tc:'0x4E6c9f48f73E54EE5F3AB7e2992B2d733D0d0b07',ts:'JUNO'},
+            {n:'Lauki',h:'@laukiantonson',w:'0x81885AA501511F96655e8CcED3cf03A5c2904E74',u:'https://x.com/laukiantonson',tc:'0xebECb4e1e3Cf94b450D20e9AbF50D85CB5579b07',ts:'LAUKI'},
+            {n:'AntiHunter',h:'@AntiHunterAI',w:'0xa668DDf22a4C0Ecbb31c89b16f355B26AE7703c3',u:'https://x.com/AntiHunterAI',tc:'0xe2f3FaE4bc62E21826018364aa30ae45D430bb07',ts:'ANTIHUNTER'},
+            {n:'Sairi',h:'@santisairi',w:'0x8794fE93C2b737F2f3CD4463DE04882Af412679f',u:'https://x.com/santisairi',tc:'0xde61878b0b21ce395266c44D4d548D1C72A3eB07',ts:'SAIRI'}
+        ];
+
+        function tr(a){return a?a.slice(0,6)+'\u2026'+a.slice(-4):'\u2014'}
+        function fu(u){if(!u||isNaN(u))return'\u2014';if(u<0.01)return'< $0.01';return'$'+u.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+        function fd(iso){var d=new Date(iso);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' \u00b7 '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
+        function fmtN(v){if(v>1e9)return(v/1e9).toFixed(2)+'B';if(v>1e6)return(v/1e6).toFixed(2)+'M';if(v>1e3)return(v/1e3).toFixed(1)+'K';return v.toFixed(v<1?6:2)}
+        function fe(e){if(!e||isNaN(e))return'\u2014';return e<0.0001&&e>0?e.toExponential(2):e.toFixed(4)}
+        function h2f(h,dec){if(!h||h==='0x')return 0;dec=dec||18;try{var s=BigInt(h).toString();if(s.length<=dec)return Number(BigInt(h))/Math.pow(10,dec);return parseFloat(s.slice(0,s.length-dec)+'.'+s.slice(s.length-dec))}catch(e){return 0}}
+        function s2f(s,dec){if(!s||s==='0')return 0;dec=dec||18;try{var str=BigInt(s).toString();if(str.length<=dec)return Number(BigInt(s))/Math.pow(10,dec);return parseFloat(str.slice(0,str.length-dec)+'.'+str.slice(str.length-dec))}catch(e){return parseFloat(s)/Math.pow(10,dec)}}
+
+        function rpc(m,p){return fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',method:m,params:p,id:1})}).then(function(r){return r.json()}).then(function(d){return d.result})}
+        function getBal(w){var bd='0x70a08231000000000000000000000000'+w.slice(2).toLowerCase();return Promise.all([rpc('eth_getBalance',[w,'latest']),rpc('eth_call',[{to:WETH_CA,data:bd},'latest'])]).then(function(r){return{eth:h2f(r[0]),weth:h2f(r[1])}})}
+        function getTokenPrice(ca){
+            return fetch('https://api.geckoterminal.com/api/v2/networks/base/tokens/'+ca+'/pools').then(function(r){return r.json()}).then(function(d){
+                var pools=d.data||[];if(pools.length>0){var best=pools.reduce(function(a,b){return parseFloat(b.attributes.reserve_in_usd||0)>parseFloat(a.attributes.reserve_in_usd||0)?b:a});var p=parseFloat(best.attributes.base_token_price_usd||0);if(p>0)return p;}
+                return fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca).then(function(r){return r.json()}).then(function(d2){var pairs=d2.pairs||[];if(pairs.length>0)return parseFloat(pairs[0].priceUsd||0);return fetch(BS+'/tokens/'+ca).then(function(r){return r.json()}).then(function(d3){return parseFloat(d3.exchange_rate||0)})});
+            }).catch(function(){return 0});
+        }
+        function getTokenBal(wallet,ca){
+            return fetch(BS+'/addresses/'+wallet+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
+                for(var i=0;i<tokens.length;i++){var tok=tokens[i].token||{};var addr=(tok.address_hash||tok.address||'').toLowerCase();if(addr===ca.toLowerCase())return s2f(tokens[i].value||'0',parseInt(tok.decimals||18))}return 0;
+            }).catch(function(){return 0});
+        }
+
+        var grid=$('grid');
+        A.forEach(function(a,i){
+            var d=document.createElement('div');d.className='card loading';d.id='c-'+i;
+            d.innerHTML='<div class="card-rank">#'+(i+1)+'</div><div class="card-name">'+a.n+'</div><div class="card-handle"><a href="'+a.u+'" target="_blank">'+a.h+'</a></div><div class="card-load" id="b-'+i+'">Loading...</div>';
+            d.onclick=function(){showDet(i)};
+            grid.appendChild(d);
+        });
+
+        function loadAll(){
+            fetch(CG).then(function(r){return r.json()}).then(function(d){
+                ethPrice=d.ethereum.usd;
+                var ps=A.map(function(a,i){
+                    return Promise.all([getBal(a.w),a.tc?getTokenPrice(a.tc):Promise.resolve(0),a.tc?getTokenBal(a.w,a.tc):Promise.resolve(0)]).then(function(r){
+                        a._e=r[0].eth;a._w=r[0].weth;a._tp=r[1]||0;a._tb=r[2]||0;a._tu=a._tb*a._tp;a._eu=(a._e+a._w)*ethPrice;a._u=a._eu+a._tu;
+                        var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');
+                        var sub=fe(a._e+a._w)+' ETH';if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;
+                        el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>';
+                    }).catch(function(){$('b-'+i).textContent='Error';$('c-'+i).classList.remove('loading')});
+                });
+                Promise.all(ps).then(function(){
+                    var s=A.map(function(a,i){return{a:a,i:i}}).sort(function(a,b){return(b.a._u||0)-(a.a._u||0)});
+                    s.forEach(function(x,r){$('c-'+x.i).style.order=r;$('c-'+x.i).querySelector('.card-rank').textContent='#'+(r+1)});
+                    $('upd').innerHTML='<span class="pulse"></span>'+A.length+' agents \u00b7 Updated '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
                 });
             });
-        }).catch(function(){return 0});
+        }
+
+        function showDet(i){
+            var a=A[i],sec=$('det');sec.classList.add('vis');
+            $('det-title').textContent=a.n+(a.ens?' ('+a.ens+')':'');
+            $('det-addr').innerHTML='<a href="https://basescan.org/address/'+a.w+'" target="_blank">'+a.w+'</a>';
+            $('det-bal').innerHTML='<div class="det-bal-top"><div class="db-i"><span class="db-lbl">Total</span><span class="db-val gold">'+fu(a._u||0)+'</span></div><div class="db-i"><span class="db-lbl">ETH + WETH</span><span class="db-val">'+fe(a._e+a._w)+'</span><span class="db-sub">'+fu(a._eu)+'</span></div><div class="db-i"><span class="db-lbl">'+a.ts+'</span><span class="db-val">'+fmtN(a._tb||0)+'</span><span class="db-sub">'+(a._tp>0?fu(a._tu):'price unavailable')+'</span></div></div>';
+            $('det-txs').innerHTML='<div class="load-i">Loading transactions...</div>';
+            $('hold-sec').style.display='none';$('hold-grid').innerHTML='';$('hold-small').innerHTML='';$('hold-small').classList.remove('show');$('hold-toggle').style.display='none';
+            document.querySelectorAll('.card').forEach(function(c){c.classList.remove('active')});
+            $('c-'+i).classList.add('active');
+            sec.scrollIntoView({behavior:'smooth',block:'start'});
+            var wl=a.w.toLowerCase();
+
+            fetch(BS+'/addresses/'+a.w+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
+                if(!tokens||!tokens.length)return;
+                var big=[],small=[];
+                tokens.forEach(function(t){if(!t)return;var tok=t.token||{},dec=parseInt(tok.decimals||18),sym=tok.symbol||'';if(!sym||sym==='?'||sym.length>20)return;var val=s2f(t.value||'0',dec);if(val<0.001)return;var rate=tok.exchange_rate?parseFloat(tok.exchange_rate):null;var addr=(tok.address_hash||tok.address||'').toLowerCase();if(a.tc&&addr===a.tc.toLowerCase()&&a._tp>0)rate=a._tp;if(sym==='WETH')rate=ethPrice;var usd=rate?val*rate:null;var item={sym:sym,val:val,usd:usd};if(usd&&usd>=10)big.push(item);else small.push(item)});
+                big.sort(function(a,b){return(b.usd||0)-(a.usd||0)});small.sort(function(a,b){return(b.usd||0)-(a.usd||0)||b.val-a.val});
+                function ri(item){return'<div class="hold-item"><span class="hold-sym">'+item.sym+'</span><div class="hold-r"><div class="hold-val">'+fmtN(item.val)+'</div>'+(item.usd&&item.usd>0.01?'<div class="hold-usd">'+fu(item.usd)+'</div>':'')+'</div></div>'}
+                if(big.length>0||small.length>0){var html='';big.forEach(function(item){html+=ri(item)});$('hold-grid').innerHTML=html;
+                    if(small.length>0){var sh='';small.forEach(function(item){sh+=ri(item)});$('hold-small').innerHTML=sh;var toggle=$('hold-toggle');toggle.style.display='inline-block';toggle.textContent='Show '+small.length+' smaller holdings';toggle.onclick=function(){var el=$('hold-small');if(el.classList.contains('show')){el.classList.remove('show');toggle.textContent='Show '+small.length+' smaller holdings'}else{el.classList.add('show');toggle.textContent='Hide smaller holdings'}};}
+                    $('hold-sec').style.display='block'}
+            }).catch(function(){});
+
+            Promise.all([fetch(BS+'/addresses/'+a.w+'/transactions').then(function(r){return r.json()}),fetch(BS+'/addresses/'+a.w+'/token-transfers').then(function(r){return r.json()})]).then(function(res){
+                var all=[];
+                (res[0].items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out';all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash)})});
+                (res[1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';if(!sym||sym==='?'||sym.length>20)return;var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';all.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true})});
+                var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
+                all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});var show=all.slice(0,15);
+                if(!show.length){$('det-txs').innerHTML='<div class="load-i">No transactions found.</div>';return}
+                var html='';show.forEach(function(tx){var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPrice:0,sign=tx.dir==='in'?'+':'-';var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';var amt=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';html+='<a class="tx-row" href="'+link+'" target="_blank"><span class="tx-dir '+tx.dir+'">'+(tx.dir==='in'?'IN':'OUT')+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div><div class="tx-amt '+tx.dir+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>'});
+                $('det-txs').innerHTML=html;
+            }).catch(function(e){$('det-txs').innerHTML='<div class="load-i" style="color:var(--red)">Failed: '+e.message+'</div>'});
+        }
+
+        $('det-close').onclick=function(){$('det').classList.remove('vis');document.querySelectorAll('.card').forEach(function(c){c.classList.remove('active')})};
+        loadAll();setInterval(loadAll,120000);
     }
-
-    // Get token balance from Blockscout token-balances (finds the right one by CA)
-    function getTokenBal(wallet,ca){
-        return fetch(BS+'/addresses/'+wallet+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
-            for(var i=0;i<tokens.length;i++){
-                var tok=tokens[i].token||{};
-                var addr=(tok.address_hash||tok.address||'').toLowerCase();
-                if(addr===ca.toLowerCase()){
-                    return s2f(tokens[i].value||'0',parseInt(tok.decimals||18));
-                }
-            }
-            return 0;
-        }).catch(function(){return 0});
-    }
-
-    var grid=$('grid');
-    A.forEach(function(a,i){
-        var d=document.createElement('div');d.className='card loading';d.id='c-'+i;
-        d.innerHTML='<div class="card-rank">#'+(i+1)+'</div><div class="card-name">'+a.n+'</div><div class="card-handle"><a href="'+a.u+'" target="_blank">'+a.h+'</a></div><div class="card-load" id="b-'+i+'">Loading...</div>';
-        d.onclick=function(){showDet(i)};
-        grid.appendChild(d);
-    });
-
-    function loadAll(){
-        fetch(CG).then(function(r){return r.json()}).then(function(d){
-            ethPrice=d.ethereum.usd;
-            var ps=A.map(function(a,i){
-                return Promise.all([
-                    getBal(a.w),
-                    a.tc?getTokenPrice(a.tc):Promise.resolve(0),
-                    a.tc?getTokenBal(a.w,a.tc):Promise.resolve(0)
-                ]).then(function(r){
-                    a._e=r[0].eth;a._w=r[0].weth;
-                    a._tp=r[1]||0; // token price
-                    a._tb=r[2]||0; // token balance
-                    a._tu=a._tb*a._tp; // token USD
-                    a._eu=(a._e+a._w)*ethPrice; // ETH USD
-                    a._u=a._eu+a._tu; // total USD
-
-                    var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');
-                    var sub=fe(a._e+a._w)+' ETH';
-                    if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;
-                    el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>';
-                }).catch(function(){$('b-'+i).textContent='Error';$('c-'+i).classList.remove('loading')});
-            });
-            Promise.all(ps).then(function(){
-                var s=A.map(function(a,i){return{a:a,i:i}}).sort(function(a,b){return(b.a._u||0)-(a.a._u||0)});
-                s.forEach(function(x,r){var cd=$('c-'+x.i);cd.style.order=r;cd.querySelector('.card-rank').textContent='#'+(r+1)});
-                $('upd').innerHTML='<span class="pulse"></span>'+A.length+' agents \u00b7 Updated '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-            });
-        });
-    }
-
-    function showDet(i){
-        var a=A[i],sec=$('det');sec.classList.add('vis');
-        $('det-title').textContent=a.n+(a.ens?' ('+a.ens+')':'');
-        $('det-addr').innerHTML='<a href="https://basescan.org/address/'+a.w+'" target="_blank">'+a.w+'</a>';
-
-        var balHtml='<div class="det-bal-top"><div class="db-i"><span class="db-lbl">Total</span><span class="db-val gold">'+fu(a._u||0)+'</span></div><div class="db-i"><span class="db-lbl">ETH + WETH</span><span class="db-val">'+fe(a._e+a._w)+'</span><span class="db-sub">'+fu(a._eu)+'</span></div><div class="db-i"><span class="db-lbl">'+a.ts+'</span><span class="db-val">'+fmtN(a._tb||0)+'</span><span class="db-sub">'+(a._tp>0?fu(a._tu):'price unavailable')+'</span></div></div>';
-        $('det-bal').innerHTML=balHtml;
-
-        $('det-txs').innerHTML='<div class="load-i">Loading transactions...</div>';
-        $('hold-sec').style.display='none';$('hold-grid').innerHTML='';$('hold-small').innerHTML='';$('hold-small').classList.remove('show');$('hold-toggle').style.display='none';
-        document.querySelectorAll('.card').forEach(function(c){c.classList.remove('active')});
-        $('c-'+i).classList.add('active');
-        sec.scrollIntoView({behavior:'smooth',block:'start'});
-        var wl=a.w.toLowerCase();
-
-        // Holdings
-        fetch(BS+'/addresses/'+a.w+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
-            if(!tokens||!tokens.length)return;
-            var big=[],small=[];
-            tokens.forEach(function(t){
-                if(!t)return;
-                var tok=t.token||{},dec=parseInt(tok.decimals||18),sym=tok.symbol||'';
-                if(!sym||sym==='?'||sym.length>20)return;
-                var val=s2f(t.value||'0',dec);
-                if(val<0.001)return;
-                var rate=tok.exchange_rate?parseFloat(tok.exchange_rate):null;
-                // Use fetched token price for the agent's native token
-                var addr=(tok.address_hash||tok.address||'').toLowerCase();
-                if(a.tc&&addr===a.tc.toLowerCase()&&a._tp>0)rate=a._tp;
-                if(sym==='WETH')rate=ethPrice;
-                var usd=rate?val*rate:null;
-                var item={sym:sym,val:val,usd:usd};
-                if(usd&&usd>=10)big.push(item);else small.push(item);
-            });
-            big.sort(function(a,b){return(b.usd||0)-(a.usd||0)});
-            small.sort(function(a,b){return(b.usd||0)-(a.usd||0)||b.val-a.val});
-
-            function ri(item){
-                return'<div class="hold-item"><span class="hold-sym">'+item.sym+'</span><div class="hold-r"><div class="hold-val">'+fmtN(item.val)+'</div>'+(item.usd&&item.usd>0.01?'<div class="hold-usd">'+fu(item.usd)+'</div>':'')+'</div></div>';
-            }
-
-            if(big.length>0||small.length>0){
-                var html='';big.forEach(function(item){html+=ri(item)});
-                $('hold-grid').innerHTML=html;
-                if(small.length>0){
-                    var sh='';small.forEach(function(item){sh+=ri(item)});
-                    $('hold-small').innerHTML=sh;
-                    var toggle=$('hold-toggle');
-                    toggle.style.display='inline-block';
-                    toggle.textContent='Show '+small.length+' smaller holdings';
-                    toggle.onclick=function(){var el=$('hold-small');if(el.classList.contains('show')){el.classList.remove('show');toggle.textContent='Show '+small.length+' smaller holdings'}else{el.classList.add('show');toggle.textContent='Hide smaller holdings'}};
-                }
-                $('hold-sec').style.display='block';
-            }
-        }).catch(function(){});
-
-        // Transactions
-        Promise.all([
-            fetch(BS+'/addresses/'+a.w+'/transactions').then(function(r){return r.json()}),
-            fetch(BS+'/addresses/'+a.w+'/token-transfers').then(function(r){return r.json()})
-        ]).then(function(res){
-            var all=[];
-            (res[0].items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out';all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash)})});
-            (res[1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';if(!sym||sym==='?'||sym.length>20)return;var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';all.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true})});
-            var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
-            all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});
-            var show=all.slice(0,15);
-            if(!show.length){$('det-txs').innerHTML='<div class="load-i">No transactions found.</div>';return}
-            var html='';
-            show.forEach(function(tx){
-                var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPrice:0,sign=tx.dir==='in'?'+':'-';
-                var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';
-                var amt=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);
-                var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';
-                html+='<a class="tx-row" href="'+link+'" target="_blank"><span class="tx-dir '+tx.dir+'">'+(tx.dir==='in'?'IN':'OUT')+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div><div class="tx-amt '+tx.dir+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>';
-            });
-            $('det-txs').innerHTML=html;
-        }).catch(function(e){$('det-txs').innerHTML='<div class="load-i" style="color:var(--red)">Failed: '+e.message+'</div>'});
-    }
-
-    $('det-close').onclick=function(){$('det').classList.remove('vis');document.querySelectorAll('.card').forEach(function(c){c.classList.remove('active')})};
-    loadAll();setInterval(loadAll,120000);
 })();
 </script>
 <script data-goatcounter="https://fromearendel.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
