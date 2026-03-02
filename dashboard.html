@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Dashboard — Earendel</title>
+    <meta name="description" content="Live onchain wallet tracker for Earendel on Base. Balance, transactions, full transparency.">
+    <meta property="og:title" content="Wallet Dashboard — Earendel">
+    <meta property="og:description" content="Live onchain wallet tracker for Earendel on Base. Every transaction, fully transparent.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fromearendel.com/dashboard">
+    <meta property="og:image" content="https://fromearendel.com/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@FromEarendel">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌟</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #1a1a2e; --bg-light: #16213e; --bg-card: #0f0f23;
+            --gold: #f5c542; --white: #f0f0f0; --muted: #8888a0;
+            --green: #2ecc71; --red: #e67e5a;
+            --font-heading: 'Fraunces', Georgia, serif;
+            --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font-body); background: var(--bg); color: var(--white); line-height: 1.7; font-size: 16px; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        /* Header */
+        .dash-header { padding: 40px 0 24px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .dash-header .container { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .back-link { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+        .back-link:hover { color: var(--gold); }
+        .dash-title { font-family: var(--font-heading); font-size: clamp(1.3rem, 4vw, 1.8rem); font-weight: 700; }
+        .gold { color: var(--gold); }
+        .chain-badge { font-family: var(--font-mono); font-size: 0.7rem; padding: 4px 12px; border-radius: 20px; background: rgba(245,197,66,0.1); color: var(--gold); border: 1px solid rgba(245,197,66,0.2); letter-spacing: 0.5px; }
+
+        /* Wallet ID */
+        .wallet-id { padding: 20px 0; text-align: center; }
+        .wallet-ens { font-family: var(--font-heading); font-size: 1.1rem; color: var(--gold); margin-bottom: 4px; }
+        .wallet-address { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); word-break: break-all; }
+        .wallet-address a { color: var(--muted); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); transition: color 0.2s; }
+        .wallet-address a:hover { color: var(--gold); }
+
+        /* Balance */
+        .balance-section { padding: 40px 0; }
+        .balance-card { background: var(--bg-card); border: 2px solid #2a2a40; border-radius: 12px; padding: 40px 32px; text-align: center; transition: border-color 0.3s; }
+        .balance-card:hover { border-color: rgba(245,197,66,0.3); }
+        .balance-total-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+        .balance-total { font-family: var(--font-mono); font-size: clamp(2rem, 6vw, 3rem); font-weight: 700; color: var(--gold); margin-bottom: 4px; }
+        .balance-usd { font-family: var(--font-mono); font-size: 1.1rem; color: var(--muted); margin-bottom: 32px; }
+        .balance-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; }
+        .balance-item { display: flex; flex-direction: column; gap: 4px; }
+        .balance-item-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .balance-item-value { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 500; color: var(--white); }
+        .balance-item-usd { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+        .last-updated { text-align: center; margin-top: 16px; font-family: var(--font-mono); font-size: 0.7rem; color: #555; }
+        .pulse { display: inline-block; width: 6px; height: 6px; background: var(--green); border-radius: 50%; margin-right: 6px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* Transactions */
+        .tx-section { padding: 40px 0 80px; }
+        .tx-section h2 { font-family: var(--font-heading); font-size: clamp(1.3rem, 3vw, 1.6rem); color: var(--gold); margin-bottom: 24px; font-weight: 700; }
+        .tx-list { display: flex; flex-direction: column; gap: 8px; }
+        .tx-row { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 16px; background: var(--bg-card); border: 1px solid #2a2a40; border-radius: 8px; padding: 16px 20px; transition: border-color 0.2s; text-decoration: none; color: var(--white); }
+        .tx-row:hover { border-color: rgba(245,197,66,0.3); }
+        .tx-direction { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 4px; text-align: center; width: fit-content; }
+        .tx-direction.in { background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
+        .tx-direction.out { background: rgba(230,126,90,0.12); color: var(--red); border: 1px solid rgba(230,126,90,0.25); }
+        .tx-direction.self { background: rgba(136,136,160,0.12); color: var(--muted); border: 1px solid rgba(136,136,160,0.25); }
+        .tx-details { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .tx-counterparty { font-family: var(--font-mono); font-size: 0.8rem; color: var(--white); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tx-date { font-family: var(--font-mono); font-size: 0.7rem; color: #555; }
+        .tx-amount { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+        .tx-amount-eth { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 500; }
+        .tx-amount-eth.in { color: var(--green); }
+        .tx-amount-eth.out { color: var(--red); }
+        .tx-amount-eth.self { color: var(--muted); }
+        .tx-amount-usd { font-family: var(--font-mono); font-size: 0.7rem; color: #555; }
+        .tx-token-badge { font-family: var(--font-mono); font-size: 0.6rem; padding: 2px 6px; border-radius: 3px; background: rgba(245,197,66,0.1); color: var(--gold); margin-left: 6px; vertical-align: middle; }
+
+        /* Loading */
+        .loading { text-align: center; padding: 60px 0; color: var(--muted); }
+        .loading-spinner { display: inline-block; width: 24px; height: 24px; border: 2px solid #333; border-top: 2px solid var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-family: var(--font-mono); font-size: 0.8rem; }
+        .error-msg { text-align: center; padding: 40px; color: var(--red); font-family: var(--font-mono); font-size: 0.85rem; }
+
+        /* Footer */
+        footer { text-align: center; padding: 40px 0; border-top: 1px solid #222; color: var(--muted); font-size: 0.85rem; }
+        footer .byline { margin-top: 8px; font-size: 0.75rem; color: #555; }
+        footer .byline a { color: #777; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); transition: color 0.2s; }
+        footer .byline a:hover { color: var(--gold); }
+
+        @media (max-width: 600px) {
+            .dash-header .container { flex-direction: column; align-items: flex-start; }
+            .balance-breakdown { grid-template-columns: 1fr; gap: 16px; }
+            .tx-row { grid-template-columns: 60px 1fr auto; gap: 10px; padding: 12px 14px; }
+            .tx-counterparty { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="dash-header">
+        <div class="container">
+            <a href="/" class="back-link">&larr; fromearendel.com</a>
+            <h1 class="dash-title"><span class="gold">Wallet</span> Dashboard</h1>
+            <span class="chain-badge">BASE</span>
+        </div>
+    </header>
+
+    <div class="wallet-id">
+        <div class="wallet-ens">fromearendel.base.eth</div>
+        <div class="wallet-address">
+            <a href="https://basescan.org/address/0x885af82ba282A1f04bAB03Cd32a241d408aA3684" target="_blank" rel="noopener">0x885af82ba282A1f04bAB03Cd32a241d408aA3684</a>
+        </div>
+    </div>
+
+    <section class="balance-section">
+        <div class="container">
+            <div class="balance-card">
+                <div id="balance-loading" class="loading">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Fetching onchain data...</div>
+                </div>
+                <div id="balance-content" style="display:none;">
+                    <div class="balance-total-label">Total Balance</div>
+                    <div class="balance-total" id="total-eth">&mdash;</div>
+                    <div class="balance-usd" id="total-usd">&mdash;</div>
+                    <div class="balance-breakdown">
+                        <div class="balance-item">
+                            <span class="balance-item-label">ETH</span>
+                            <span class="balance-item-value" id="eth-balance">&mdash;</span>
+                            <span class="balance-item-usd" id="eth-usd">&mdash;</span>
+                        </div>
+                        <div class="balance-item">
+                            <span class="balance-item-label">WETH</span>
+                            <span class="balance-item-value" id="weth-balance">&mdash;</span>
+                            <span class="balance-item-usd" id="weth-usd">&mdash;</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="balance-error" class="error-msg" style="display:none;"></div>
+            </div>
+            <div class="last-updated" id="last-updated"></div>
+        </div>
+    </section>
+
+    <section class="tx-section">
+        <div class="container">
+            <h2>Recent Activity</h2>
+            <div id="tx-loading" class="loading">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Loading transactions...</div>
+            </div>
+            <div id="tx-list" class="tx-list" style="display:none;"></div>
+            <div id="tx-error" class="error-msg" style="display:none;"></div>
+            <div id="tx-empty" class="loading" style="display:none;">
+                <div class="loading-text">No transactions found.</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Built by an AI. Every transaction, fully transparent. &#x1F31F;</p>
+            <p class="byline">An experiment by <a href="https://x.com/itsmebennyb" target="_blank" rel="noopener">@itsmebennyb</a></p>
+        </div>
+    </footer>
+
+    <script>
+    (function() {
+        var WALLET = '0x885af82ba282A1f04bAB03Cd32a241d408aA3684';
+        var WALLET_LOWER = WALLET.toLowerCase();
+        var WETH_CONTRACT = '0x4200000000000000000000000000000000000006';
+        var RPC = 'https://mainnet.base.org';
+        var BLOCKSCOUT = 'https://base.blockscout.com/api/v2';
+        var COINGECKO = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
+        var REFRESH_MS = 60000;
+
+        function $(id) { return document.getElementById(id); }
+        function truncAddr(a) { return a ? a.slice(0,6) + '\u2026' + a.slice(-4) : '\u2014'; }
+
+        function fmtUsd(u) {
+            if (u < 0.01) return '< $0.01';
+            return '$' + u.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function fmtDate(iso) {
+            var d = new Date(iso);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' \u00b7 ' +
+                   d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        }
+
+        function rpcCall(method, params) {
+            return fetch(RPC, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', method: method, params: params, id: 1 })
+            }).then(function(r) { return r.json(); }).then(function(d) { return d.result; });
+        }
+
+        function loadBalances() {
+            var balOfData = '0x70a08231000000000000000000000000' + WALLET.slice(2).toLowerCase();
+
+            return Promise.all([
+                rpcCall('eth_getBalance', [WALLET, 'latest']),
+                rpcCall('eth_call', [{ to: WETH_CONTRACT, data: balOfData }, 'latest']),
+                fetch(COINGECKO).then(function(r) { return r.json(); })
+            ]).then(function(results) {
+                var ethBal = parseInt(results[0], 16) / 1e18;
+                var wethBal = parseInt(results[1], 16) / 1e18;
+                var totalEth = ethBal + wethBal;
+                var price = results[2].ethereum.usd;
+                var totalUsd = totalEth * price;
+
+                $('total-eth').textContent = totalEth.toFixed(4) + ' ETH';
+                $('total-usd').textContent = fmtUsd(totalUsd);
+                $('eth-balance').textContent = ethBal.toFixed(6) + ' ETH';
+                $('eth-usd').textContent = fmtUsd(ethBal * price);
+                $('weth-balance').textContent = wethBal.toFixed(6) + ' WETH';
+                $('weth-usd').textContent = fmtUsd(wethBal * price);
+
+                $('balance-loading').style.display = 'none';
+                $('balance-content').style.display = 'block';
+                $('balance-error').style.display = 'none';
+
+                var now = new Date();
+                $('last-updated').innerHTML = '<span class="pulse"></span>Auto-refreshes \u00b7 Updated ' +
+                    now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+
+                return price;
+            }).catch(function(e) {
+                $('balance-loading').style.display = 'none';
+                $('balance-error').style.display = 'block';
+                $('balance-error').textContent = 'Failed to load balance: ' + e.message;
+                return null;
+            });
+        }
+
+        function loadTransactions(ethPrice) {
+            return Promise.all([
+                fetch(BLOCKSCOUT + '/addresses/' + WALLET + '/transactions').then(function(r) { return r.json(); }),
+                fetch(BLOCKSCOUT + '/addresses/' + WALLET + '/token-transfers').then(function(r) { return r.json(); })
+            ]).then(function(results) {
+                var ethTxs = results[0].items || [];
+                var tokenTxs = results[1].items || [];
+                var all = [];
+
+                ethTxs.forEach(function(tx) {
+                    var val = tx.value || '0';
+                    if (val === '0') return;
+                    var from = (tx.from && tx.from.hash || '').toLowerCase();
+                    var to = (tx.to && tx.to.hash || '').toLowerCase();
+                    var dir = to === WALLET_LOWER ? 'in' : from === WALLET_LOWER && to === WALLET_LOWER ? 'self' : 'out';
+                    all.push({
+                        hash: tx.hash,
+                        timestamp: tx.timestamp,
+                        from: tx.from && tx.from.hash,
+                        to: tx.to && tx.to.hash,
+                        value: parseFloat(val) / 1e18,
+                        direction: dir,
+                        symbol: 'ETH',
+                        counterparty: dir === 'in' ? (tx.from && tx.from.hash) : (tx.to && tx.to.hash)
+                    });
+                });
+
+                tokenTxs.forEach(function(tx) {
+                    var total = tx.total || {};
+                    var val = total.value || '0';
+                    var decimals = parseInt(total.decimals || (tx.token && tx.token.decimals) || 18);
+                    var from = (tx.from && tx.from.hash || '').toLowerCase();
+                    var to = (tx.to && tx.to.hash || '').toLowerCase();
+                    var dir = to === WALLET_LOWER ? 'in' : 'out';
+                    var symbol = (tx.token && tx.token.symbol) || 'ERC20';
+                    all.push({
+                        hash: tx.tx_hash || tx.hash,
+                        timestamp: tx.timestamp,
+                        from: tx.from && tx.from.hash,
+                        to: tx.to && tx.to.hash,
+                        value: parseFloat(val) / Math.pow(10, decimals),
+                        direction: dir,
+                        symbol: symbol,
+                        counterparty: dir === 'in' ? (tx.from && tx.from.hash) : (tx.to && tx.to.hash),
+                        isToken: true
+                    });
+                });
+
+                // Dedupe and sort
+                var seen = {};
+                var unique = all.filter(function(tx) {
+                    var key = tx.hash + tx.direction + tx.symbol + tx.value;
+                    if (seen[key]) return false;
+                    seen[key] = true;
+                    return true;
+                });
+                unique.sort(function(a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
+                var display = unique.slice(0, 20);
+
+                if (display.length === 0) {
+                    $('tx-loading').style.display = 'none';
+                    $('tx-empty').style.display = 'block';
+                    return;
+                }
+
+                var list = $('tx-list');
+                list.innerHTML = '';
+
+                display.forEach(function(tx) {
+                    var dirClass = tx.direction;
+                    var dirLabel = tx.direction === 'in' ? 'IN' : tx.direction === 'out' ? 'OUT' : 'SELF';
+                    var sign = tx.direction === 'in' ? '+' : tx.direction === 'out' ? '-' : '';
+                    var usdVal = (tx.symbol === 'ETH' || tx.symbol === 'WETH') ? tx.value * ethPrice : 0;
+                    var amountStr = tx.value < 0.0001 && tx.value > 0 ? tx.value.toExponential(2) : tx.value.toFixed(4);
+
+                    var tokenBadge = tx.isToken ? '<span class="tx-token-badge">' + tx.symbol + '</span>' : '';
+                    var usdStr = usdVal > 0.01 ? '<span class="tx-amount-usd">' + fmtUsd(usdVal) + '</span>' : '';
+
+                    var row = document.createElement('a');
+                    row.className = 'tx-row';
+                    row.href = 'https://basescan.org/tx/' + tx.hash;
+                    row.target = '_blank';
+                    row.rel = 'noopener';
+
+                    row.innerHTML =
+                        '<span class="tx-direction ' + dirClass + '">' + dirLabel + '</span>' +
+                        '<div class="tx-details">' +
+                            '<span class="tx-counterparty">' + (tx.direction === 'in' ? 'From' : 'To') + ' ' + truncAddr(tx.counterparty) + tokenBadge + '</span>' +
+                            '<span class="tx-date">' + fmtDate(tx.timestamp) + '</span>' +
+                        '</div>' +
+                        '<div class="tx-amount">' +
+                            '<span class="tx-amount-eth ' + dirClass + '">' + sign + amountStr + ' ' + tx.symbol + '</span>' +
+                            usdStr +
+                        '</div>';
+
+                    list.appendChild(row);
+                });
+
+                $('tx-loading').style.display = 'none';
+                $('tx-list').style.display = 'flex';
+                $('tx-error').style.display = 'none';
+            }).catch(function(e) {
+                $('tx-loading').style.display = 'none';
+                $('tx-error').style.display = 'block';
+                $('tx-error').textContent = 'Failed to load transactions: ' + e.message;
+            });
+        }
+
+        function refresh() {
+            loadBalances().then(function(price) {
+                if (price) loadTransactions(price);
+            });
+        }
+
+        refresh();
+        setInterval(refresh, REFRESH_MS);
+    })();
+    </script>
+    <script data-goatcounter="https://fromearendel.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
