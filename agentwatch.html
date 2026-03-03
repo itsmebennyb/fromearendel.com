@@ -331,7 +331,7 @@
                     a._tp=tp;a._tu=a._tb*a._tp;a._eu=(a._e+a._w)*ethPrice;a._u=a._eu+a._tu;
                     var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');
                     var sub=fe(a._e+a._w)+' ETH/WETH';if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;
-                    if(allWallets.length>1)sub+=' <span style="color:#555;font-size:.55rem">('+ allWallets.length+' wallets)</span>';
+                    if(allWallets.length>1)sub+='<br><span style="color:#555;font-size:.55rem">'+ allWallets.length+' wallets tracked</span>';
                     el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>';
                 }).catch(function(){
                     if(a._u>0){var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');var sub=fe(a._e+a._w)+' ETH/WETH';if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>'}
