@@ -279,7 +279,7 @@
                 var toAddr=(tx.cp||'').toLowerCase(),fromAddr=(tx._from||'').toLowerCase();
                 var sym=(tx.sym||'').toUpperCase(),dir=tx.dir;
                 if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'📩 AIRDROP',cls:'wrap'};
-                if(dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
+                if(dir==='out'&&DEAD.indexOf(toAddr)!==-1&&sym!=='ETH'&&sym!=='WETH') return {label:'🔥 BURN',cls:'burn'};
                 if(dir==='in'&&(fromAddr===CLANKER_FEE||fromAddr===CLANKER_REWARDS)) return {label:'💰 CLAIM',cls:'claim'};
                 if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
                 if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};

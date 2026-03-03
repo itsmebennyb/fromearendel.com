@@ -379,7 +379,7 @@
             var agentSym=(agentToken||'').toUpperCase();
             var dir=tx.dir;
             if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'📩 AIRDROP',cls:'wrap'};
-            if(dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
+            if(dir==='out'&&DEAD.indexOf(toAddr)!==-1&&sym!=='ETH'&&sym!=='WETH') return {label:'🔥 BURN',cls:'burn'};
             if(dir==='in'&&(fromAddr===CLANKER_FEE||fromAddr===CLANKER_REWARDS)) return {label:'💰 CLAIM',cls:'claim'};
             if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
             if(tx._isClaim) return {label:'💰 CLAIM',cls:'claim'};
