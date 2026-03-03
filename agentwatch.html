@@ -272,16 +272,25 @@
 
         function rpc(m,p){return fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',method:m,params:p,id:1})}).then(function(r){return r.json()}).then(function(d){return d.result})}
         function getBal(w){var bd='0x70a08231000000000000000000000000'+w.slice(2).toLowerCase();return Promise.all([rpc('eth_getBalance',[w,'latest']),rpc('eth_call',[{to:WETH_CA,data:bd},'latest'])]).then(function(r){return{eth:h2f(r[0]),weth:h2f(r[1])}})}
-        var priceCache={};
-        function fetchWithTimeout(url,ms){return Promise.race([fetch(url).then(function(r){return r.json()}),new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'))},ms||8000)})])}
+        var PRICE_TTL=120000,PRICE_LS='aw_prices';
+        var priceCache=(function(){try{var d=JSON.parse(localStorage.getItem(PRICE_LS)||'{}');var now=Date.now();Object.keys(d).forEach(function(k){if(now-d[k].t>300000)delete d[k]});return d}catch(e){return {}}})();
+        function savePC(){try{localStorage.setItem(PRICE_LS,JSON.stringify(priceCache))}catch(e){}}
+        function fetchWithTimeout(url,ms){return Promise.race([fetch(url).then(function(r){if(r.status===429)throw new Error('429');return r.json()}),new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'))},ms||8000)})])}
+        var geckoBlocked=false;
+        function batchGeckoPrices(cas){
+            if(geckoBlocked)return Promise.resolve({});
+            var addrs=cas.join(',');
+            return fetchWithTimeout('https://api.geckoterminal.com/api/v2/networks/base/tokens/multi/'+addrs,8000).then(function(d){
+                var out={};(d.data||[]).forEach(function(tok){var addr=(tok.attributes.address||'').toLowerCase();var p=parseFloat(tok.attributes.price_usd||0);if(p>0)out[addr]=p});return out;
+            }).catch(function(e){if(e.message==='429')geckoBlocked=true;return {}});
+        }
         function getTokenPrice(ca){
-            if(priceCache[ca]&&Date.now()-priceCache[ca].t<120000)return Promise.resolve(priceCache[ca].p);
-            return fetchWithTimeout('https://api.geckoterminal.com/api/v2/networks/base/tokens/'+ca+'/pools',6000).then(function(d){
-                var pools=d.data||[];if(pools.length>0){var best=pools.reduce(function(a,b){return parseFloat(b.attributes.reserve_in_usd||0)>parseFloat(a.attributes.reserve_in_usd||0)?b:a});var p=parseFloat(best.attributes.base_token_price_usd||0);if(p>0){priceCache[ca]={p:p,t:Date.now()};return p;}}
-                return fetchWithTimeout('https://api.dexscreener.com/latest/dex/tokens/'+ca,6000).then(function(d2){var pairs=d2.pairs||[];if(pairs.length>0){var p=parseFloat(pairs[0].priceUsd||0);if(p>0){priceCache[ca]={p:p,t:Date.now()};return p;}}
-                    return fetchWithTimeout(BS+'/tokens/'+ca,6000).then(function(d3){var p=parseFloat(d3.exchange_rate||0);priceCache[ca]={p:p,t:Date.now()};return p;}).catch(function(){return priceCache[ca]?priceCache[ca].p:0});
-                }).catch(function(){return priceCache[ca]?priceCache[ca].p:0});
-            }).catch(function(){return priceCache[ca]?priceCache[ca].p:0});
+            var lca=ca.toLowerCase();
+            if(priceCache[lca]&&Date.now()-priceCache[lca].t<PRICE_TTL)return Promise.resolve(priceCache[lca].p);
+            // Individual fallback: DexScreener → Blockscout
+            return fetchWithTimeout('https://api.dexscreener.com/latest/dex/tokens/'+ca,6000).then(function(d2){var pairs=d2.pairs||[];if(pairs.length>0){var p=parseFloat(pairs[0].priceUsd||0);if(p>0){priceCache[lca]={p:p,t:Date.now()};savePC();return p;}}
+                return fetchWithTimeout(BS+'/tokens/'+ca,6000).then(function(d3){var p=parseFloat(d3.exchange_rate||0);priceCache[lca]={p:p,t:Date.now()};savePC();return p;}).catch(function(){return priceCache[lca]?priceCache[lca].p:0});
+            }).catch(function(){return priceCache[lca]?priceCache[lca].p:0});
         }
         function getTokenBal(wallet,ca){
             return fetch(BS+'/addresses/'+wallet+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
@@ -321,6 +330,15 @@
             }
             getEP().then(function(){
                 if(!ethPrice)return;
+                // Batch-fetch all token prices from GeckoTerminal in one call
+                var allCAs=A.filter(function(a){return a.tc}).map(function(a){return a.tc});
+                return batchGeckoPrices(allCAs).then(function(batchPrices){
+                    // Seed cache with batch results
+                    Object.keys(batchPrices).forEach(function(addr){priceCache[addr.toLowerCase()]={p:batchPrices[addr],t:Date.now()}});
+                    if(Object.keys(batchPrices).length>0)savePC();
+                });
+            }).then(function(){
+                if(!ethPrice)return;
                 var chain=Promise.resolve();var batch=[];
                 A.forEach(function(a,i){
                     batch.push({a:a,i:i});
@@ -331,7 +349,7 @@
                     s.forEach(function(x,r){$('c-'+x.i).style.order=r;$('c-'+x.i).querySelector('.card-rank').textContent='#'+(r+1)});
                     $('upd').innerHTML='<span class="pulse"></span>'+A.length+' agents \u00b7 Updated '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
                 });
-            });
+            }).catch(function(){});
         }
 
         function showDet(i){
