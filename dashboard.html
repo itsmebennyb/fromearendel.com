@@ -225,6 +225,9 @@
                 tokens.forEach(function(t){
                     var tok=t.token||{},dec=parseInt(tok.decimals||18),sym=tok.symbol||'';
                     if(!sym||sym==='?'||sym.length>20)return;
+                    var addr=(tok.address_hash||tok.address||'').toLowerCase();
+                    // Filter out imposter tokens with same symbol but different CA
+                    if(sym==='EARENDEL'&&addr!==EARENDEL_CA.toLowerCase())return;
                     var val=s2f(t.value||'0',dec);
                     if(val<0.001)return;
                     var rate=tok.exchange_rate?parseFloat(tok.exchange_rate):null;
