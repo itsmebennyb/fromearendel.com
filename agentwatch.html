@@ -363,6 +363,38 @@
             }).catch(function(){});
         }
 
+        // === TX CLASSIFICATION (global scope) ===
+        var DEAD=['0x0000000000000000000000000000000000000000','0x000000000000000000000000000000000000dead','0x0000000000000000000000000000000000000001'];
+        var ROUTERS=['0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad','0x2626664c2603336e57b271c5c0b26f421741e481','0x6131b5fae19ea4f9d964eac0408e4408b66337b5','0xd8ba9d1a99fc21f0eca24e9b85737c28a194a4e2'];
+        var WETH_ADDR='0x4200000000000000000000000000000000000006';
+        var CLANKER_FEE='0xf60633d02690e2a15a54ab919925f3d038df163e';
+
+        function classifyTx(tx,agentToken,allWalletsLower){
+            var method=(tx._method||'').toLowerCase();
+            var input=(tx._input||'').slice(0,10).toLowerCase();
+            var toAddr=(tx.cp||'').toLowerCase();
+            var fromAddr=(tx._from||'').toLowerCase();
+            var sym=(tx.sym||'').toUpperCase();
+            var agentSym=(agentToken||'').toUpperCase();
+            var dir=tx.dir;
+            if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'📩 AIRDROP',cls:'wrap'};
+            if(dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
+            if(dir==='in'&&fromAddr===CLANKER_FEE) return {label:'💰 CLAIM',cls:'claim'};
+            if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
+            if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};
+            if(method==='deposit'&&toAddr===WETH_ADDR) return {label:'↻ WRAP',cls:'wrap'};
+            if(method==='withdraw'&&fromAddr===WETH_ADDR) return {label:'↻ UNWRAP',cls:'wrap'};
+            if(method==='swap'||method.indexOf('swap')!==-1||input==='0xeffbec13'||input==='0x38ed1739'||input==='0x5ae401dc'||input==='0x04e45aaf'){
+                if(dir==='in'&&sym===agentSym) return {label:'🔄 BUYBACK',cls:'buyback'};
+                if(dir==='out'&&sym===agentSym) return {label:'📤 SELL',cls:'out'};
+                return {label:'⚡ SWAP',cls:'swap'};
+            }
+            if(method.indexOf('addliquidity')!==-1||method.indexOf('mint')!==-1&&ROUTERS.indexOf(toAddr)!==-1) return {label:'💧 LP ADD',cls:'lp'};
+            if(method.indexOf('removeliquidity')!==-1||method.indexOf('burn')!==-1&&ROUTERS.indexOf(fromAddr)!==-1) return {label:'💧 LP REMOVE',cls:'lp'};
+            if(method==='exectransaction') return null;
+            return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
+        }
+
         function showDet(i){
             var a=A[i],sec=$('det');sec.classList.add('vis');
             var allWallets=[a.w].concat((a.aw||[]).map(function(x){return x.a}));
@@ -407,58 +439,6 @@
                     if(small.length>0){var sh='';small.forEach(function(item){sh+=ri(item)});$('hold-small').innerHTML=sh;var toggle=$('hold-toggle');toggle.style.display='inline-block';toggle.textContent='Show '+small.length+' smaller holdings';toggle.onclick=function(){var el=$('hold-small');if(el.classList.contains('show')){el.classList.remove('show');toggle.textContent='Show '+small.length+' smaller holdings'}else{el.classList.add('show');toggle.textContent='Hide smaller holdings'}};}
                     $('hold-sec').style.display='block'}
             }).catch(function(){});
-
-            // === TX CLASSIFICATION ===
-            var DEAD=['0x0000000000000000000000000000000000000000','0x000000000000000000000000000000000000dead','0x0000000000000000000000000000000000000001'];
-            var ROUTERS=['0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad','0x2626664c2603336e57b271c5c0b26f421741e481','0x6131b5fae19ea4f9d964eac0408e4408b66337b5','0xd8ba9d1a99fc21f0eca24e9b85737c28a194a4e2'];
-            var WETH_ADDR='0x4200000000000000000000000000000000000006';
-            var CLANKER_FEE='0xf60633d02690e2a15a54ab919925f3d038df163e';
-
-            function classifyTx(tx,agentToken,allWalletsLower){
-                var method=(tx._method||'').toLowerCase();
-                var input=(tx._input||'').slice(0,10).toLowerCase();
-                var toAddr=(tx.cp||'').toLowerCase();
-                var fromAddr=(tx._from||'').toLowerCase();
-                var sym=(tx.sym||'').toUpperCase();
-                var agentSym=(agentToken||'').toUpperCase();
-                var dir=tx.dir;
-
-                // Airdrops: incoming tokens minted from zero address
-                if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'📩 AIRDROP',cls:'wrap'};
-
-                // Burns: agent SENDING tokens to dead address
-                if(dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
-
-                // Claims: incoming from Clanker fee address or method contains 'claim'
-                if(dir==='in'&&fromAddr===CLANKER_FEE) return {label:'💰 CLAIM',cls:'claim'};
-                if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
-
-                // Approve: just an approval, not a real transfer
-                if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};
-
-                // Wraps/unwraps
-                if(method==='deposit'&&toAddr===WETH_ADDR) return {label:'↻ WRAP',cls:'wrap'};
-                if(method==='withdraw'&&fromAddr===WETH_ADDR) return {label:'↻ UNWRAP',cls:'wrap'};
-
-                // Swaps
-                if(method==='swap'||method.indexOf('swap')!==-1||input==='0xeffbec13'||input==='0x38ed1739'||input==='0x5ae401dc'||input==='0x04e45aaf'){
-                    // Buyback: agent receives its own token in a swap
-                    if(dir==='in'&&sym===agentSym) return {label:'🔄 BUYBACK',cls:'buyback'};
-                    // Sell: agent sends its own token in a swap
-                    if(dir==='out'&&sym===agentSym) return {label:'📤 SELL',cls:'out'};
-                    return {label:'⚡ SWAP',cls:'swap'};
-                }
-
-                // LP operations
-                if(method.indexOf('addliquidity')!==-1||method.indexOf('mint')!==-1&&ROUTERS.indexOf(toAddr)!==-1) return {label:'💧 LP ADD',cls:'lp'};
-                if(method.indexOf('removeliquidity')!==-1||method.indexOf('burn')!==-1&&ROUTERS.indexOf(fromAddr)!==-1) return {label:'💧 LP REMOVE',cls:'lp'};
-
-                // Safe multisig execution (unwrap to show as generic)
-                if(method==='exectransaction') return null; // let token transfers classify themselves
-
-                // Default
-                return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
-            }
 
             // Fetch transactions from all wallets
             var txProms=[];allWallets.forEach(function(w){txProms.push(fetch(BS+'/addresses/'+w+'/transactions').then(function(r){return r.json()}).catch(function(){return{items:[]}}));txProms.push(fetch(BS+'/addresses/'+w+'/token-transfers').then(function(r){return r.json()}).catch(function(){return{items:[]}}))});
