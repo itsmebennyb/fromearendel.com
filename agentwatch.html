@@ -296,17 +296,34 @@
         });
 
         function loadAll(){
-            fetch(CG).then(function(r){return r.json()}).then(function(d){
-                ethPrice=d.ethereum.usd;
-                var ps=A.map(function(a,i){
-                    return Promise.all([getBal(a.w),a.tc?getTokenPrice(a.tc):Promise.resolve(0),a.tc?getTokenBal(a.w,a.tc):Promise.resolve(0)]).then(function(r){
-                        a._e=r[0].eth;a._w=r[0].weth;a._tp=r[1]||0;a._tb=r[2]||0;a._tu=a._tb*a._tp;a._eu=(a._e+a._w)*ethPrice;a._u=a._eu+a._tu;
-                        var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');
-                        var sub=fe(a._e+a._w)+' ETH';if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;
-                        el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>';
-                    }).catch(function(){$('b-'+i).textContent='Error';$('c-'+i).classList.remove('loading')});
+            var ethPriceCache=loadAll._epc||(loadAll._epc={p:0,t:0});
+            function getEP(){
+                if(ethPriceCache.p>0&&Date.now()-ethPriceCache.t<120000){ethPrice=ethPriceCache.p;return Promise.resolve(ethPrice)}
+                return fetchWithTimeout(CG,8000).then(function(d){ethPrice=d.ethereum.usd;ethPriceCache.p=ethPrice;ethPriceCache.t=Date.now();return ethPrice}).catch(function(){if(ethPriceCache.p>0){ethPrice=ethPriceCache.p;return ethPrice}return 0});
+            }
+            function dly(ms){return new Promise(function(r){setTimeout(r,ms)})}
+            function retry(fn,n){return fn().catch(function(e){if(n>0)return dly(1500).then(function(){return retry(fn,n-1)});throw e})}
+            function loadOne(a,i){
+                return retry(function(){
+                    return Promise.all([getBal(a.w),a.tc?getTokenPrice(a.tc):Promise.resolve(0),a.tc?getTokenBal(a.w,a.tc):Promise.resolve(0)]);
+                },2).then(function(r){
+                    a._e=r[0].eth;a._w=r[0].weth;a._tp=r[1]||0;a._tb=r[2]||0;a._tu=a._tb*a._tp;a._eu=(a._e+a._w)*ethPrice;a._u=a._eu+a._tu;
+                    var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');
+                    var sub=fe(a._e+a._w)+' ETH/WETH';if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;
+                    el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>';
+                }).catch(function(){
+                    if(a._u>0){var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');var sub=fe(a._e+a._w)+' ETH/WETH';if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>'}
+                    else{$('b-'+i).textContent='Retrying...';$('c-'+i).classList.remove('loading')}
                 });
-                Promise.all(ps).then(function(){
+            }
+            getEP().then(function(){
+                if(!ethPrice)return;
+                var chain=Promise.resolve();var batch=[];
+                A.forEach(function(a,i){
+                    batch.push({a:a,i:i});
+                    if(batch.length===3||i===A.length-1){var b=batch.slice();chain=chain.then(function(){return Promise.all(b.map(function(x){return loadOne(x.a,x.i)})).then(function(){return dly(300)})});batch=[];}
+                });
+                chain.then(function(){
                     var s=A.map(function(a,i){return{a:a,i:i}}).sort(function(a,b){return(b.a._u||0)-(a.a._u||0)});
                     s.forEach(function(x,r){$('c-'+x.i).style.order=r;$('c-'+x.i).querySelector('.card-rank').textContent='#'+(r+1)});
                     $('upd').innerHTML='<span class="pulse"></span>'+A.length+' agents \u00b7 Updated '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
