@@ -251,13 +251,13 @@
 
         var A=[
             {n:'Earendel',h:'@FromEarendel',w:'0x885af82ba282A1f04bAB03Cd32a241d408aA3684',ens:'fromearendel.base.eth',u:'https://x.com/FromEarendel',tc:'0x62Bcefd446f97526ECC1375D02e014cFb8b48BA3',ts:'EARENDEL'},
-            {n:'Felix',h:'@FelixCraftAI',w:'0x778902475c0B5Cf97BB91515a007d983Ad6E70A6',u:'https://x.com/FelixCraftAI',tc:'0xf30Bf00edd0C22db54C9274B90D2A4C21FC09b07',ts:'FELIX'},
+            {n:'Felix',h:'@FelixCraftAI',w:'0x778902475c0B5Cf97BB91515a007d983Ad6E70A6',u:'https://x.com/FelixCraftAI',tc:'0xf30Bf00edd0C22db54C9274B90D2A4C21FC09b07',ts:'FELIX',aw:[{a:'0x35977CF9b9a753d11e043452418D01F37D93084e',l:'Safe Signer'}]},
             {n:'Kelly',h:'@KellyClaudeAI',w:'0x6A7802447D6e8267e2EACBD1EAC870134cb8f4BF',u:'https://x.com/KellyClaudeAI',tc:'0x50D2280441372486BeecdD328c1854743EBaCb07',ts:'KELLYCLAUDE'},
-            {n:'CLAWD',h:'@clawdbotatg',w:'0x90eF2A9211A3E7CE788561E5af54C76B0Fa3aEd0',u:'https://x.com/clawdbotatg',tc:'0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07',ts:'CLAWD'},
-            {n:'Owockibot',h:'@owockibot',w:'0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be',u:'https://x.com/owockibot',tc:'0xfDC933Ff4e2980d18beCF48e4E030d8463A2Bb07',ts:'OWOCKIBOT'},
+            {n:'CLAWD',h:'@clawdbotatg',w:'0x90eF2A9211A3E7CE788561E5af54C76B0Fa3aEd0',u:'https://x.com/clawdbotatg',tc:'0x9f86dB9fc6f7c9408e8Fda3Ff8ce4e78ac7a6b07',ts:'CLAWD',aw:[{a:'0x472C382550780cD30e1D27155b96Fa4b63d9247e',l:'Safe Signer'}]},
+            {n:'Owockibot',h:'@owockibot',w:'0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be',u:'https://x.com/owockibot',tc:'0xfDC933Ff4e2980d18beCF48e4E030d8463A2Bb07',ts:'OWOCKIBOT',aw:[{a:'0x00AE928D24A4450bFbb70bbDd7d3d3f163513C2A',l:'Safe Signer 1'},{a:'0xbb925f5Cd2fC2d834f47cb3468476746AfFDa5d4',l:'Safe Signer 2'},{a:'0xE2D4A7ff2b7bB9f92AD5d1eDd438224C1646733C',l:'Safe Signer 3'}]},
             {n:'Juno',h:'@JunoAgent',w:'0xeAEC194B018d71F93313Df12C6271b29dfdDd4Fb',u:'https://x.com/JunoAgent',tc:'0x4E6c9f48f73E54EE5F3AB7e2992B2d733D0d0b07',ts:'JUNO'},
             {n:'Lauki',h:'@laukiantonson',w:'0x81885AA501511F96655e8CcED3cf03A5c2904E74',u:'https://x.com/laukiantonson',tc:'0xebECb4e1e3Cf94b450D20e9AbF50D85CB5579b07',ts:'LAUKI'},
-            {n:'AntiHunter',h:'@AntiHunterAI',w:'0xa668DDf22a4C0Ecbb31c89b16f355B26AE7703c3',u:'https://x.com/AntiHunterAI',tc:'0xe2f3FaE4bc62E21826018364aa30ae45D430bb07',ts:'ANTIHUNTER'},
+            {n:'AntiHunter',h:'@AntiHunterAI',w:'0xa668DDf22a4C0Ecbb31c89b16f355B26AE7703c3',u:'https://x.com/AntiHunterAI',tc:'0xe2f3FaE4bc62E21826018364aa30ae45D430bb07',ts:'ANTIHUNTER',aw:[{a:'0x30D8fA11d951da46384446E69efB2149c2e843d3',l:'Dev Funder'}]},
             {n:'Sairi',h:'@santisairi',w:'0xF122DEFfccCD32f4e31a9Ee6655F2E2F03128223',u:'https://x.com/santisairi',tc:'0xde61878b0b21ce395266c44D4d548D1C72A3eB07',ts:'SAIRI'},
             {n:'AtlasForge',h:'@AtlasForgeAI',w:'0xc713dA39bC5Bade9CE47fac6341bEBAcEDaD78c5',u:'https://x.com/AtlasForgeAI',tc:'0x317358baacb54452b7097e7cffdb9f8c15ce6ba3',ts:'ATLASFORGE'}
         ];
@@ -316,12 +316,22 @@
             function dly(ms){return new Promise(function(r){setTimeout(r,ms)})}
             function retry(fn,n){return fn().catch(function(e){if(n>0)return dly(1500).then(function(){return retry(fn,n-1)});throw e})}
             function loadOne(a,i){
+                var allWallets=[a.w].concat((a.aw||[]).map(function(x){return x.a}));
                 return retry(function(){
-                    return Promise.all([getBal(a.w),a.tc?getTokenPrice(a.tc):Promise.resolve(0),a.tc?getTokenBal(a.w,a.tc):Promise.resolve(0)]);
+                    var balProms=allWallets.map(function(w){return getBal(w)});
+                    var tokProms=allWallets.map(function(w){return a.tc?getTokenBal(w,a.tc):Promise.resolve(0)});
+                    return Promise.all([Promise.all(balProms),a.tc?getTokenPrice(a.tc):Promise.resolve(0),Promise.all(tokProms)]);
                 },2).then(function(r){
-                    a._e=r[0].eth;a._w=r[0].weth;a._tp=r[1]||0;a._tb=r[2]||0;a._tu=a._tb*a._tp;a._eu=(a._e+a._w)*ethPrice;a._u=a._eu+a._tu;
+                    var bals=r[0],tp=r[1]||0,tbs=r[2];
+                    // Store per-wallet data for detail view
+                    a._wallets=allWallets.map(function(w,j){var b=bals[j];return{addr:w,label:j===0?'Primary':(a.aw[j-1].l||'Associated'),eth:b.eth,weth:b.weth,tb:tbs[j]||0}});
+                    // Aggregate
+                    a._e=0;a._w=0;a._tb=0;
+                    a._wallets.forEach(function(ww){a._e+=ww.eth;a._w+=ww.weth;a._tb+=ww.tb});
+                    a._tp=tp;a._tu=a._tb*a._tp;a._eu=(a._e+a._w)*ethPrice;a._u=a._eu+a._tu;
                     var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');
                     var sub=fe(a._e+a._w)+' ETH/WETH';if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;
+                    if(allWallets.length>1)sub+=' <span style="color:#555;font-size:.55rem">('+ allWallets.length+' wallets)</span>';
                     el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>';
                 }).catch(function(){
                     if(a._u>0){var el=$('b-'+i),cd=$('c-'+i);cd.classList.remove('loading');var sub=fe(a._e+a._w)+' ETH/WETH';if(a._tb>0)sub+=' + '+fmtN(a._tb)+' '+a.ts;el.innerHTML='<div class="card-bal">'+fu(a._u)+'</div><div class="card-sub">'+sub+'</div>'}
@@ -354,9 +364,29 @@
 
         function showDet(i){
             var a=A[i],sec=$('det');sec.classList.add('vis');
+            var allWallets=[a.w].concat((a.aw||[]).map(function(x){return x.a}));
+            var allWalletsLower=allWallets.map(function(w){return w.toLowerCase()});
             $('det-title').textContent=a.n+(a.ens?' ('+a.ens+')':'');
-            $('det-addr').innerHTML='<a href="https://basescan.org/address/'+a.w+'" target="_blank">'+a.w+'</a>';
-            $('det-bal').innerHTML='<div class="det-bal-top"><div class="db-i"><span class="db-lbl">Total</span><span class="db-val gold">'+fu(a._u||0)+'</span></div><div class="db-i"><span class="db-lbl">ETH / WETH</span><span class="db-val">'+fe(a._e)+' + '+fe(a._w)+'</span><span class="db-sub">'+fu(a._eu)+'</span></div><div class="db-i"><span class="db-lbl">'+a.ts+'</span><span class="db-val">'+fmtN(a._tb||0)+'</span><span class="db-sub">'+(a._tp>0?fu(a._tu):'price unavailable')+'</span></div></div>';
+            // Show all wallet addresses
+            var addrHtml='<a href="https://basescan.org/address/'+a.w+'" target="_blank">'+a.w+'</a>';
+            if(a.aw&&a.aw.length>0){addrHtml+='<span style="color:#555;margin-left:8px">(+ '+(a.aw.length)+' associated)</span>'}
+            $('det-addr').innerHTML=addrHtml;
+            // Balance breakdown
+            var balHtml='<div class="det-bal-top"><div class="db-i"><span class="db-lbl">Aggregate Total</span><span class="db-val gold">'+fu(a._u||0)+'</span></div><div class="db-i"><span class="db-lbl">ETH / WETH</span><span class="db-val">'+fe(a._e)+' + '+fe(a._w)+'</span><span class="db-sub">'+fu(a._eu)+'</span></div><div class="db-i"><span class="db-lbl">'+a.ts+'</span><span class="db-val">'+fmtN(a._tb||0)+'</span><span class="db-sub">'+(a._tp>0?fu(a._tu):'price unavailable')+'</span></div></div>';
+            // Per-wallet breakdown for multi-wallet agents
+            if(a._wallets&&a._wallets.length>1){
+                balHtml+='<div style="border-top:1px solid rgba(255,255,255,.08);padding-top:16px;margin-top:16px">';
+                balHtml+='<div class="db-lbl" style="margin-bottom:10px">Wallet Breakdown</div>';
+                a._wallets.forEach(function(ww){
+                    var wEth=ww.eth+ww.weth;var wUsd=wEth*ethPrice+(ww.tb*a._tp);
+                    balHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">';
+                    balHtml+='<div><span style="font-family:var(--font-m);font-size:.7rem;color:var(--gold)">'+ww.label+'</span><br><a href="https://basescan.org/address/'+ww.addr+'" target="_blank" style="font-family:var(--font-m);font-size:.6rem;color:var(--muted);text-decoration:none">'+tr(ww.addr)+'</a></div>';
+                    balHtml+='<div style="text-align:right"><span style="font-family:var(--font-m);font-size:.85rem">'+fu(wUsd)+'</span><br><span style="font-family:var(--font-m);font-size:.6rem;color:var(--muted)">'+fe(wEth)+' ETH'+(ww.tb>0?' + '+fmtN(ww.tb)+' '+a.ts:'')+'</span></div>';
+                    balHtml+='</div>';
+                });
+                balHtml+='</div>';
+            }
+            $('det-bal').innerHTML=balHtml;
             $('det-txs').innerHTML='<div class="load-i">Loading transactions...</div>';
             $('hold-sec').style.display='none';$('hold-grid').innerHTML='';$('hold-small').innerHTML='';$('hold-small').classList.remove('show');$('hold-toggle').style.display='none';
             document.querySelectorAll('.card').forEach(function(c){c.classList.remove('active')});
@@ -364,7 +394,8 @@
             sec.scrollIntoView({behavior:'smooth',block:'start'});
             var wl=a.w.toLowerCase();
 
-            fetch(BS+'/addresses/'+a.w+'/token-balances').then(function(r){return r.json()}).then(function(tokens){
+            // Fetch token balances from all wallets
+            Promise.all(allWallets.map(function(w){return fetch(BS+'/addresses/'+w+'/token-balances').then(function(r){return r.json()}).catch(function(){return []})})).then(function(allTokens){var tokens=[];var seen={};allTokens.forEach(function(toks){(toks||[]).forEach(function(t){var tok=t.token||{};var addr=(tok.address_hash||tok.address||'').toLowerCase();if(!seen[addr]){seen[addr]=t;tokens.push(t)}else{var prev=seen[addr];var dec=parseInt(tok.decimals||18);var oldVal=BigInt(prev.value||'0');var newVal=BigInt(t.value||'0');prev.value=(oldVal+newVal).toString()}})});return tokens}).then(function(tokens){
                 if(!tokens||!tokens.length)return;
                 var big=[],small=[];
                 tokens.forEach(function(t){if(!t)return;var tok=t.token||{},dec=parseInt(tok.decimals||18),sym=tok.symbol||'';if(!sym||sym==='?'||sym.length>20)return;var val=s2f(t.value||'0',dec);if(val<0.001)return;var rate=tok.exchange_rate?parseFloat(tok.exchange_rate):null;var addr=(tok.address_hash||tok.address||'').toLowerCase();if(a.tc&&addr===a.tc.toLowerCase()&&a._tp>0)rate=a._tp;if(sym==='WETH')rate=ethPrice;var usd=rate?val*rate:null;var item={sym:sym,val:val,usd:usd};if(usd&&usd>=10)big.push(item);else small.push(item)});
@@ -375,10 +406,15 @@
                     $('hold-sec').style.display='block'}
             }).catch(function(){});
 
-            Promise.all([fetch(BS+'/addresses/'+a.w+'/transactions').then(function(r){return r.json()}),fetch(BS+'/addresses/'+a.w+'/token-transfers').then(function(r){return r.json()})]).then(function(res){
+            // Fetch transactions from all wallets
+            var txProms=[];allWallets.forEach(function(w){txProms.push(fetch(BS+'/addresses/'+w+'/transactions').then(function(r){return r.json()}).catch(function(){return{items:[]}}));txProms.push(fetch(BS+'/addresses/'+w+'/token-transfers').then(function(r){return r.json()}).catch(function(){return{items:[]}}))});
+            Promise.all(txProms).then(function(results){
                 var all=[];
-                (res[0].items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out';all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash)})});
-                (res[1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wl?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';if(!sym||sym==='?'||sym.length>20)return;var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';all.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true})});
+                for(var ri=0;ri<results.length;ri+=2){var wIdx=ri/2;var wAddr=allWallets[wIdx].toLowerCase();
+                (results[ri].items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wAddr?'in':'out';all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash)})});
+                (results[ri+1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wAddr?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';if(!sym||sym==='?'||sym.length>20)return;var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';all.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true})});}
+                // Filter out transfers between the agent's own wallets
+                all=all.filter(function(t){var cp=(t.cp||'').toLowerCase();return allWalletsLower.indexOf(cp)===-1});
                 var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
                 all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});var show=all.slice(0,15);
                 if(!show.length){$('det-txs').innerHTML='<div class="load-i">No transactions found.</div>';return}
