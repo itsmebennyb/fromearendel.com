@@ -393,8 +393,9 @@
             }
             if(method.indexOf('addliquidity')!==-1||method.indexOf('mint')!==-1&&ROUTERS.indexOf(toAddr)!==-1) return {label:'💧 LP ADD',cls:'lp'};
             if(method.indexOf('removeliquidity')!==-1||method.indexOf('burn')!==-1&&ROUTERS.indexOf(fromAddr)!==-1) return {label:'💧 LP REMOVE',cls:'lp'};
-            // Safe multisig: classify the underlying token transfers, don't skip
-            // (execTransaction wraps claims, transfers, etc.)
+            // Spam airdrop: unsolicited incoming token not matching any known pattern
+            if(dir==='in'&&tx.tok&&sym!=='WETH'&&sym!=='ETH'&&sym!=='USDC'&&sym!=='USDT'&&sym!=='DAI'&&sym!==agentSym&&!tx._isClaim) return {label:'📩 AIRDROP',cls:'wrap'};
+
             return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
         }
 
