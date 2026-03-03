@@ -422,8 +422,8 @@
                 var agentSym=(agentToken||'').toUpperCase();
                 var dir=tx.dir;
 
-                // Burns: transfer to dead address
-                if(DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
+                // Burns: agent SENDING tokens to dead address (not receiving from one)
+                if(dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
 
                 // Claims: incoming from Clanker fee address or method contains 'claim'
                 if(dir==='in'&&fromAddr===CLANKER_FEE) return {label:'💰 CLAIM',cls:'claim'};
