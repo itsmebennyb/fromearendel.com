@@ -82,12 +82,12 @@
         .tx-dir.claim{background:rgba(245,197,66,.12);color:var(--gold);border:1px solid rgba(245,197,66,.25)}.tx-dir.burn{background:rgba(255,87,51,.15);color:#ff5733;border:1px solid rgba(255,87,51,.25)}.tx-dir.buyback{background:rgba(155,89,182,.15);color:#bb6bd9;border:1px solid rgba(155,89,182,.25)}.tx-dir.swap{background:rgba(52,152,219,.12);color:#3498db;border:1px solid rgba(52,152,219,.25)}.tx-dir.lp{background:rgba(46,204,113,.08);color:#27ae60;border:1px solid rgba(46,204,113,.15)}.tx-dir.approve{background:rgba(255,255,255,.05);color:#555;border:1px solid rgba(255,255,255,.05)}.tx-dir.wrap{background:rgba(255,255,255,.05);color:#555;border:1px solid rgba(255,255,255,.05)}
         .tx-det{display:flex;flex-direction:column;gap:2px;min-width:0}
         .tx-cp{font-family:var(--font-m);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .tx-date{font-family:var(--font-m);font-size:.7rem;color:#555}
+        .tx-date{font-family:var(--font-m);font-size:.7rem;color:#555;margin-top:3px}
         .tx-amt{text-align:right;display:flex;flex-direction:column;gap:2px}
         .tx-eth{font-family:var(--font-m);font-size:.85rem;font-weight:500}
         .tx-eth.in{color:var(--green)}.tx-eth.out{color:var(--red)}
         .tx-usd{font-family:var(--font-m);font-size:.7rem;color:#555}
-        .tx-tok{font-family:var(--font-m);font-size:.6rem;padding:2px 6px;border-radius:3px;background:rgba(245,197,66,.1);color:var(--gold);margin-left:6px;vertical-align:middle}
+        .tx-tok{font-family:var(--font-m);font-size:.6rem;padding:2px 6px;border-radius:3px;background:rgba(245,197,66,.1);color:var(--gold);margin-left:6px;margin-right:6px;vertical-align:middle}
 
         .loading{text-align:center;padding:60px 0;color:var(--muted)}
         .spin{display:inline-block;width:24px;height:24px;border:2px solid #333;border-top:2px solid var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
@@ -100,7 +100,7 @@
         footer a{color:#777;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1);transition:color .2s}
         footer a:hover{color:var(--gold)}
 
-        @media(max-width:600px){header .c{flex-direction:column;align-items:flex-start;justify-content:flex-start}.back{position:static}.badge{position:static}.bal-grid{grid-template-columns:1fr}.tx-row{grid-template-columns:60px 1fr auto;gap:10px;padding:12px 14px}.tx-cp{font-size:.7rem}}
+        @media(max-width:600px){header .c{flex-direction:column;align-items:flex-start;justify-content:flex-start}.back{position:static}.badge{position:static}.bal-grid{grid-template-columns:1fr}.tx-row{grid-template-columns:auto 1fr auto;gap:8px;padding:10px 10px}.tx-dir{font-size:.5rem;padding:2px 5px;min-width:auto;letter-spacing:0}.tx-cp{font-size:.65rem}.tx-tok{font-size:.5rem;margin-left:3px;margin-right:0;padding:1px 3px}.tx-date{font-size:.55rem}.tx-eth{font-size:.7rem}.tx-usd{font-size:.55rem}}
     </style>
 </head>
 <body>
@@ -159,11 +159,16 @@
     var EARENDEL_CA='0x62Bcefd446f97526ECC1375D02e014cFb8b48BA3';
     var RPC='https://mainnet.base.org',BS='https://base.blockscout.com/api/v2';
     var CG='https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
+    var PRICE_LS='dash_prices';
+    var priceCache=(function(){try{var d=JSON.parse(localStorage.getItem(PRICE_LS)||'{}');var now=Date.now();Object.keys(d).forEach(function(k){if(now-d[k].t>300000)delete d[k]});return d}catch(e){return {}}})();
+    function savePC(){try{localStorage.setItem(PRICE_LS,JSON.stringify(priceCache))}catch(e){}}
     function getTokenPrice(ca){
-        return fetch('https://api.geckoterminal.com/api/v2/networks/base/tokens/'+ca+'/pools').then(function(r){return r.json()}).then(function(d){
-            var pools=d.data||[];if(pools.length>0){var best=pools.reduce(function(a,b){return parseFloat(b.attributes.reserve_in_usd||0)>parseFloat(a.attributes.reserve_in_usd||0)?b:a});var p=parseFloat(best.attributes.base_token_price_usd||0);if(p>0)return p;}
-            return fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca).then(function(r){return r.json()}).then(function(d2){var pairs=d2.pairs||[];if(pairs.length>0)return parseFloat(pairs[0].priceUsd||0);return fetch(BS+'/tokens/'+ca).then(function(r){return r.json()}).then(function(d3){return parseFloat(d3.exchange_rate||0)})});
-        }).catch(function(){return 0});
+        var lca=ca.toLowerCase();
+        if(priceCache[lca]&&Date.now()-priceCache[lca].t<120000)return Promise.resolve(priceCache[lca].p);
+        return fetch('https://api.geckoterminal.com/api/v2/networks/base/tokens/'+ca+'/pools').then(function(r){if(r.status===429)throw new Error('429');return r.json()}).then(function(d){
+            var pools=d.data||[];if(pools.length>0){var best=pools.reduce(function(a,b){return parseFloat(b.attributes.reserve_in_usd||0)>parseFloat(a.attributes.reserve_in_usd||0)?b:a});var p=parseFloat(best.attributes.base_token_price_usd||0);if(p>0){priceCache[lca]={p:p,t:Date.now()};savePC();return p;}}
+            return fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca).then(function(r){return r.json()}).then(function(d2){var pairs=d2.pairs||[];if(pairs.length>0){var p=parseFloat(pairs[0].priceUsd||0);if(p>0){priceCache[lca]={p:p,t:Date.now()};savePC();return p;}}return fetch(BS+'/tokens/'+ca).then(function(r){return r.json()}).then(function(d3){var p=parseFloat(d3.exchange_rate||0);priceCache[lca]={p:p,t:Date.now()};savePC();return p})});
+        }).catch(function(){return priceCache[lca]?priceCache[lca].p:0});
     }
 
     function $(id){return document.getElementById(id)}
@@ -185,6 +190,34 @@
 
     function rpc(m,p){return fetch(RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',method:m,params:p,id:1})}).then(function(r){return r.json()}).then(function(d){return d.result})}
 
+    // TX Classification (global scope within IIFE)
+    var DEAD=['0x0000000000000000000000000000000000000000','0x000000000000000000000000000000000000dead','0x0000000000000000000000000000000000000001'];
+    var CLANKER_FEE='0xf60633d02690e2a15a54ab919925f3d038df163e';
+    var CLANKER_REWARDS='0xd59ce43e53d69f190e15d9822fb4540dccc91178';
+    var FEE_CLAIMERS=['0xf3622742b1e446d92e45e22923ef11c2fcd55d68'];
+    var WETH_ADDR_CLS='0x4200000000000000000000000000000000000006';
+    function classifyTx(tx){
+        var method=(tx._method||'').toLowerCase(),input=(tx._input||'').slice(0,10).toLowerCase();
+        var toAddr=(tx.cp||'').toLowerCase(),fromAddr=(tx._from||'').toLowerCase();
+        var sym=(tx.sym||'').toUpperCase(),dir=tx.dir;
+        if(sym==='WETH'&&dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'↻ UNWRAP',cls:'wrap'};
+        if(sym==='WETH'&&dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'↻ WRAP',cls:'wrap'};
+        if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'🚫 SPAM',cls:'wrap'};
+        if(dir==='out'&&DEAD.indexOf(toAddr)!==-1&&sym!=='ETH'&&sym!=='WETH') return {label:'🔥 BURN',cls:'burn'};
+        if(dir==='in'&&(fromAddr===CLANKER_FEE||fromAddr===CLANKER_REWARDS||FEE_CLAIMERS.indexOf(fromAddr)!==-1)) return {label:'💰 CLAIM',cls:'claim'};
+        if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
+        if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};
+        if(method==='deposit'&&toAddr===WETH_ADDR_CLS) return {label:'↻ WRAP',cls:'wrap'};
+        if(method==='withdraw'&&fromAddr===WETH_ADDR_CLS) return {label:'↻ UNWRAP',cls:'wrap'};
+        if(method==='swap'||method.indexOf('swap')!==-1||input==='0xeffbec13'||input==='0x38ed1739'||input==='0x5ae401dc'||input==='0x04e45aaf'){
+            if(dir==='in'&&sym==='EARENDEL') return {label:'🔄 BUYBACK',cls:'buyback'};
+            if(dir==='out'&&sym==='EARENDEL') return {label:'📤 SELL',cls:'out'};
+            return {label:'⚡ SWAP',cls:'swap'};
+        }
+        if(tx._isClaim) return {label:'💰 CLAIM',cls:'claim'};
+        return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
+    }
+
     function refresh(){
         var wethData='0x70a08231000000000000000000000000'+W.slice(2).toLowerCase();
 
@@ -200,7 +233,7 @@
             var ethBal=h2f(r[0]);
             var wethBal=h2f(r[1]);
             var earendelBal=r[2];
-            var ethPrice=r[3].ethereum.usd;
+            var ethPrice=r[3].ethereum.usd;window.ethPriceGlobal=ethPrice;
             var earendelPrice=r[4]||0;
 
             var wethUsd=(ethBal+wethBal)*ethPrice;
@@ -269,34 +302,6 @@
                 }
             }).catch(function(){});
 
-            // TX Classification
-            var DEAD=['0x0000000000000000000000000000000000000000','0x000000000000000000000000000000000000dead','0x0000000000000000000000000000000000000001'];
-            var CLANKER_FEE='0xf60633d02690e2a15a54ab919925f3d038df163e';
-            var CLANKER_REWARDS='0xd59ce43e53d69f190e15d9822fb4540dccc91178';
-            var FEE_CLAIMERS=['0xf3622742b1e446d92e45e22923ef11c2fcd55d68'];
-            var WETH_ADDR='0x4200000000000000000000000000000000000006';
-            function classifyTx(tx){
-                var method=(tx._method||'').toLowerCase(),input=(tx._input||'').slice(0,10).toLowerCase();
-                var toAddr=(tx.cp||'').toLowerCase(),fromAddr=(tx._from||'').toLowerCase();
-                var sym=(tx.sym||'').toUpperCase(),dir=tx.dir;
-                if(sym==='WETH'&&dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'↻ UNWRAP',cls:'wrap'};
-                if(sym==='WETH'&&dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'↻ WRAP',cls:'wrap'};
-                if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'🚫 SPAM',cls:'wrap'};
-                if(dir==='out'&&DEAD.indexOf(toAddr)!==-1&&sym!=='ETH'&&sym!=='WETH') return {label:'🔥 BURN',cls:'burn'};
-                if(dir==='in'&&(fromAddr===CLANKER_FEE||fromAddr===CLANKER_REWARDS||FEE_CLAIMERS.indexOf(fromAddr)!==-1)) return {label:'💰 CLAIM',cls:'claim'};
-                if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
-                if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};
-                if(method==='deposit'&&toAddr===WETH_ADDR) return {label:'↻ WRAP',cls:'wrap'};
-                if(method==='withdraw'&&fromAddr===WETH_ADDR) return {label:'↻ UNWRAP',cls:'wrap'};
-                if(method==='swap'||method.indexOf('swap')!==-1||input==='0xeffbec13'||input==='0x38ed1739'||input==='0x5ae401dc'||input==='0x04e45aaf'){
-                    if(dir==='in'&&sym==='EARENDEL') return {label:'🔄 BUYBACK',cls:'buyback'};
-                    if(dir==='out'&&sym==='EARENDEL') return {label:'📤 SELL',cls:'out'};
-                    return {label:'⚡ SWAP',cls:'swap'};
-                }
-                if(tx._isClaim) return {label:'💰 CLAIM',cls:'claim'};
-                return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
-            }
-
             // Transactions
             Promise.all([
                 fetch(BS+'/addresses/'+W+'/transactions').then(function(r){return r.json()}),
@@ -346,14 +351,98 @@
                     var dirCls=cls.cls;
                     var amtCls=(dirCls==='in'||dirCls==='claim'||dirCls==='buyback')?'in':'out';
                     if(dirCls==='swap'||dirCls==='wrap'||dirCls==='approve')amtCls=tx.dir;
-                    html+='<a class="tx-row" href="'+link+'" target="_blank" rel="noopener"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div class="tx-amt"><span class="tx-eth '+amtCls+'">'+sign+amtStr+' '+tx.sym+'</span>'+(usd>0.01?'<span class="tx-usd">'+fu(usd)+'</span>':'')+'</div></a>';
+                    html+='<a class="tx-row" href="'+link+'" target="_blank" rel="noopener"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><div class="tx-date">'+fd(tx.ts)+'</div></div><div class="tx-amt"><span class="tx-eth '+amtCls+'">'+sign+amtStr+' '+tx.sym+'</span>'+(usd>0.01?'<span class="tx-usd">'+fu(usd)+'</span>':'')+'</div></a>';
                 });
+                // Store pagination state
+                window._dashTxAll=all;window._dashTxShown=20;
+                window._dashTxNext={};
+                if(res[0].next_page_params)window._dashTxNext.tx=res[0].next_page_params;
+                if(res[1].next_page_params)window._dashTxNext.tok=res[1].next_page_params;
+                var hasMore=all.length>20||Object.keys(window._dashTxNext).length>0;
+                if(hasMore)html+='<div id="tx-load-more" style="text-align:center;padding:16px"><button onclick="dashLoadMore()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a40;color:var(--muted);padding:10px 24px;border-radius:6px;cursor:pointer;font-family:var(--font-m);font-size:.75rem;transition:all .2s" onmouseover="this.style.borderColor=\'var(--gold)\';this.style.color=\'var(--gold)\'" onmouseout="this.style.borderColor=\'#2a2a40\';this.style.color=\'var(--muted)\'">Load more transactions ↓</button></div>';
                 $('tx-loading').style.display='none';
                 $('tx-list').innerHTML=html;
                 $('tx-list').style.display='flex';
             }).catch(function(e){$('tx-loading').style.display='none';$('tx-err').style.display='block';$('tx-err').textContent='Failed: '+e.message});
         }).catch(function(e){$('bal-loading').style.display='none';$('bal-error').style.display='block';$('bal-error').textContent='Failed: '+e.message});
     }
+
+    window.dashLoadMore=function(){
+        var btn=document.getElementById('tx-load-more');
+        if(btn)btn.innerHTML='<span style="color:var(--muted);font-size:.7rem">Loading...</span>';
+        var all=window._dashTxAll||[];
+        var shown=window._dashTxShown||20;
+        // Show already-fetched txs first
+        if(all.length>shown){
+            var next=all.slice(shown,shown+20);
+            window._dashTxShown=shown+20;
+            var html='';
+            next.forEach(function(tx){
+                var cls=classifyTx(tx);if(!cls)return;
+                var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPriceGlobal:0;
+                var sign=tx.dir==='in'?'+':'-';
+                var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';
+                var amtStr=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);
+                var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';
+                var dirCls=cls.cls;
+                var amtCls=(dirCls==='in'||dirCls==='claim'||dirCls==='buyback')?'in':'out';
+                if(dirCls==='swap'||dirCls==='wrap'||dirCls==='approve')amtCls=tx.dir;
+                html+='<a class="tx-row" href="'+link+'" target="_blank" rel="noopener"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><div class="tx-date">'+fd(tx.ts)+'</div></div><div class="tx-amt"><span class="tx-eth '+amtCls+'">'+sign+amtStr+' '+tx.sym+'</span>'+(usd>0.01?'<span class="tx-usd">'+fu(usd)+'</span>':'')+'</div></a>';
+            });
+            if(btn)btn.remove();
+            var hasMore=all.length>window._dashTxShown||Object.keys(window._dashTxNext||{}).length>0;
+            if(hasMore)html+='<div id="tx-load-more" style="text-align:center;padding:16px"><button onclick="dashLoadMore()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a40;color:var(--muted);padding:10px 24px;border-radius:6px;cursor:pointer;font-family:var(--font-m);font-size:.75rem;transition:all .2s" onmouseover="this.style.borderColor=\'var(--gold)\';this.style.color=\'var(--gold)\'" onmouseout="this.style.borderColor=\'#2a2a40\';this.style.color=\'var(--muted)\'">Load more transactions ↓</button></div>';
+            document.getElementById('tx-list').insertAdjacentHTML('beforeend',html);
+            return;
+        }
+        // Fetch more from API
+        var pages=window._dashTxNext||{};
+        var keys=Object.keys(pages);
+        if(!keys.length){if(btn)btn.remove();return}
+        var proms=[];
+        keys.forEach(function(key){
+            var npp=pages[key];
+            var endpoint=key==='tx'?'transactions':'token-transfers';
+            var qs=Object.keys(npp).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(npp[k])}).join('&');
+            proms.push(fetch(BS+'/addresses/'+W+'/'+endpoint+'?'+qs).then(function(r){return r.json()}).then(function(d){return{key:key,data:d}}).catch(function(){return{key:key,data:{items:[]}}}));
+        });
+        var WL=W.toLowerCase(),BS='https://base.blockscout.com/api/v2';
+        Promise.all(proms).then(function(results){
+            var newAll=[];
+            window._dashTxNext={};
+            results.forEach(function(r){
+                if(r.data.next_page_params)window._dashTxNext[r.key]=r.data.next_page_params;
+                if(r.key==='tx'){
+                    (r.data.items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),from=(tx.from&&tx.from.hash||'').toLowerCase(),dir=to===WL?'in':'out';newAll.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?from:to,_method:(tx.method||'').toLowerCase(),_input:(tx.raw_input||'').slice(0,10),_from:from,tok:false})});
+                } else {
+                    (r.data.items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),from=(tx.from&&tx.from.hash||'').toLowerCase(),dir=to===WL?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';if(!sym||sym==='?'||sym.length>20)return;var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';newAll.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?from:to,_method:'',_input:'',_from:from,tok:true})});
+                }
+            });
+            var seen={};all.forEach(function(t){seen[t.hash+t.dir+t.sym+t.value]=true});
+            newAll=newAll.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
+            newAll.sort(function(x,y){return new Date(y.ts)-new Date(x.ts)});
+            window._dashTxAll=all.concat(newAll);
+            window._dashTxShown=window._dashTxAll.length;
+            var html='';
+            newAll.forEach(function(tx){
+                var cls=classifyTx(tx);if(!cls)return;
+                var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPriceGlobal:0;
+                var sign=tx.dir==='in'?'+':'-';
+                var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';
+                var amtStr=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);
+                var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';
+                var dirCls=cls.cls;
+                var amtCls=(dirCls==='in'||dirCls==='claim'||dirCls==='buyback')?'in':'out';
+                if(dirCls==='swap'||dirCls==='wrap'||dirCls==='approve')amtCls=tx.dir;
+                html+='<a class="tx-row" href="'+link+'" target="_blank" rel="noopener"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><div class="tx-date">'+fd(tx.ts)+'</div></div><div class="tx-amt"><span class="tx-eth '+amtCls+'">'+sign+amtStr+' '+tx.sym+'</span>'+(usd>0.01?'<span class="tx-usd">'+fu(usd)+'</span>':'')+'</div></a>';
+            });
+            if(btn)btn.remove();
+            var hasMore=Object.keys(window._dashTxNext).length>0;
+            if(hasMore)html+='<div id="tx-load-more" style="text-align:center;padding:16px"><button onclick="dashLoadMore()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a40;color:var(--muted);padding:10px 24px;border-radius:6px;cursor:pointer;font-family:var(--font-m);font-size:.75rem;transition:all .2s" onmouseover="this.style.borderColor=\'var(--gold)\';this.style.color=\'var(--gold)\'" onmouseout="this.style.borderColor=\'#2a2a40\';this.style.color=\'var(--muted)\'">Load more transactions ↓</button></div>';
+            document.getElementById('tx-list').insertAdjacentHTML('beforeend',html);
+        });
+    };
+
     refresh();
     setInterval(refresh,60000);
 })();
