@@ -378,7 +378,7 @@
             var sym=(tx.sym||'').toUpperCase();
             var agentSym=(agentToken||'').toUpperCase();
             var dir=tx.dir;
-            if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'📩 AIRDROP',cls:'wrap'};
+            if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'🚫 SPAM',cls:'wrap'};
             if(dir==='out'&&DEAD.indexOf(toAddr)!==-1&&sym!=='ETH'&&sym!=='WETH') return {label:'🔥 BURN',cls:'burn'};
             if(dir==='in'&&(fromAddr===CLANKER_FEE||fromAddr===CLANKER_REWARDS)) return {label:'💰 CLAIM',cls:'claim'};
             if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
@@ -394,7 +394,7 @@
             if(method.indexOf('addliquidity')!==-1||method.indexOf('mint')!==-1&&ROUTERS.indexOf(toAddr)!==-1) return {label:'💧 LP ADD',cls:'lp'};
             if(method.indexOf('removeliquidity')!==-1||method.indexOf('burn')!==-1&&ROUTERS.indexOf(fromAddr)!==-1) return {label:'💧 LP REMOVE',cls:'lp'};
             // Spam airdrop: unsolicited incoming token not matching any known pattern
-            if(dir==='in'&&tx.tok&&sym!=='WETH'&&sym!=='ETH'&&sym!=='USDC'&&sym!=='USDT'&&sym!=='DAI'&&sym!==agentSym&&!tx._isClaim) return {label:'📩 AIRDROP',cls:'wrap'};
+            if(dir==='in'&&tx.tok&&sym!=='WETH'&&sym!=='ETH'&&sym!=='USDC'&&sym!=='USDT'&&sym!=='DAI'&&sym!==agentSym&&!tx._isClaim) return {label:'🚫 SPAM',cls:'wrap'};
 
             return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
         }
