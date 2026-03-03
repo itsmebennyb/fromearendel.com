@@ -462,7 +462,9 @@
                 // Filter approves from token transfers (they have 0 value)
                 all=all.filter(function(t){return !(t._method==='approve'&&t.tok)});
                 var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
-                // Detect claim patterns: same tx hash has agent receiving WETH + own token = claim
+                // Detect claim patterns:
+                // 1. Same tx hash has agent receiving WETH + own token
+                // 2. Same sender sends WETH + own token within 120 seconds (separate txs, e.g. fee claiming bots)
                 var byHash={};
                 all.forEach(function(t){
                     if(!t.hash||t.dir!=='in')return;
@@ -475,6 +477,29 @@
                     var hasOwnToken=group.some(function(t){return t.sym.toUpperCase()===a.ts.toUpperCase()});
                     if(hasWeth&&hasOwnToken){
                         group.forEach(function(t){t._isClaim=true});
+                    }
+                });
+                // Time-window claim detection: group incoming by sender, check for WETH+own token within 120s
+                var bySender={};
+                all.forEach(function(t){
+                    if(t.dir!=='in'||t._isClaim||!t.cp)return;
+                    var cp=t.cp.toLowerCase();
+                    if(!bySender[cp])bySender[cp]=[];
+                    bySender[cp].push(t);
+                });
+                Object.keys(bySender).forEach(function(cp){
+                    var group=bySender[cp];
+                    if(group.length<2)return;
+                    group.sort(function(x,y){return new Date(x.ts)-new Date(y.ts)});
+                    for(var i=0;i<group.length;i++){
+                        for(var j=i+1;j<group.length;j++){
+                            var dt=Math.abs(new Date(group[j].ts)-new Date(group[i].ts));
+                            if(dt>120000)break;
+                            var pair=[group[i].sym,group[j].sym];
+                            var hasWeth=pair.indexOf('WETH')!==-1;
+                            var hasOwn=pair.some(function(s){return s.toUpperCase()===a.ts.toUpperCase()});
+                            if(hasWeth&&hasOwn){group[i]._isClaim=true;group[j]._isClaim=true}
+                        }
                     }
                 });
                 all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});var show=all.slice(0,20);

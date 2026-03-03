@@ -320,10 +320,14 @@
                 });
                 all=all.filter(function(t){return !(t._method==='approve'&&t.tok)});
                 var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
-                // Detect claim patterns: same tx has incoming WETH + EARENDEL = claim
+                // Detect claim patterns
                 var byHash={};
                 all.forEach(function(t){if(!t.hash||t.dir!=='in')return;if(!byHash[t.hash])byHash[t.hash]=[];byHash[t.hash].push(t)});
                 Object.keys(byHash).forEach(function(h){var g=byHash[h];var hasWeth=g.some(function(t){return t.sym==='WETH'});var hasOwn=g.some(function(t){return t.sym==='EARENDEL'});if(hasWeth&&hasOwn)g.forEach(function(t){t._isClaim=true})});
+                // Time-window: same sender sends WETH + EARENDEL within 120s
+                var bySender={};
+                all.forEach(function(t){if(t.dir!=='in'||t._isClaim||!t.cp)return;var cp=t.cp.toLowerCase();if(!bySender[cp])bySender[cp]=[];bySender[cp].push(t)});
+                Object.keys(bySender).forEach(function(cp){var g=bySender[cp];if(g.length<2)return;g.sort(function(x,y){return new Date(x.ts)-new Date(y.ts)});for(var i=0;i<g.length;i++){for(var j=i+1;j<g.length;j++){var dt=Math.abs(new Date(g[j].ts)-new Date(g[i].ts));if(dt>120000)break;var p=[g[i].sym,g[j].sym];if(p.indexOf('WETH')!==-1&&p.some(function(s){return s==='EARENDEL'})){g[i]._isClaim=true;g[j]._isClaim=true}}}});
                 all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});
                 var show=all.slice(0,20);
                 if(!show.length){$('tx-loading').style.display='none';$('tx-empty').style.display='block';return}
