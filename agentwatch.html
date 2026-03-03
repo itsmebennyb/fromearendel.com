@@ -367,6 +367,7 @@
             var a=A[i],sec=$('det');sec.classList.add('vis');
             var allWallets=[a.w].concat((a.aw||[]).map(function(x){return x.a}));
             var allWalletsLower=allWallets.map(function(w){return w.toLowerCase()});
+            _detAgent=a;_detWallets=allWallets;_detWalletsLower=allWalletsLower;
             $('det-title').textContent=a.n+(a.ens?' ('+a.ens+')':'');
             // Show all wallet addresses
             var addrHtml='<a href="https://basescan.org/address/'+a.w+'" target="_blank">'+a.w+'</a>';
@@ -482,22 +483,99 @@
                 var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
                 all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});var show=all.slice(0,20);
                 if(!show.length){$('det-txs').innerHTML='<div class="load-i">No transactions found.</div>';return}
-                var html='';show.forEach(function(tx){
-                    var cls=classifyTx(tx,a.ts,allWalletsLower);
-                    if(!cls)return; // skip (e.g. execTransaction wrapper)
-                    var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPrice:0;
-                    var sign=tx.dir==='in'?'+':'-';
-                    var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';
-                    var amt=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);
-                    var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';
-                    var dirCls=cls.cls;
-                    var amtCls=(dirCls==='in'||dirCls==='claim'||dirCls==='buyback')?'in':'out';
-                    if(dirCls==='swap'||dirCls==='wrap'||dirCls==='approve')amtCls=tx.dir;
-                    html+='<a class="tx-row" href="'+link+'" target="_blank"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div><div class="tx-amt '+amtCls+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>';
-                });
-                $('det-txs').innerHTML=html;
+                // Store pagination state and remaining txs
+                a._txAll=all;a._txShown=20;
+                // Store next_page_params from each wallet for further loading
+                a._txNextPages={};
+                for(var ri=0;ri<results.length;ri+=2){var wIdx=ri/2;
+                    var npp=results[ri].next_page_params;
+                    if(npp)a._txNextPages['tx_'+wIdx]=npp;
+                    var npp2=results[ri+1].next_page_params;
+                    if(npp2)a._txNextPages['tok_'+wIdx]=npp2;
+                }
+                renderTxs(show,a,allWalletsLower,false);
             }).catch(function(e){$('det-txs').innerHTML='<div class="load-i" style="color:var(--red)">Failed: '+e.message+'</div>'});
         }
+
+        function renderTxs(txs,a,allWalletsLower,append){
+            var html='';txs.forEach(function(tx){
+                var cls=classifyTx(tx,a.ts,allWalletsLower);
+                if(!cls)return;
+                var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPrice:0;
+                var sign=tx.dir==='in'?'+':'-';
+                var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';
+                var amt=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);
+                var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';
+                var dirCls=cls.cls;
+                var amtCls=(dirCls==='in'||dirCls==='claim'||dirCls==='buyback')?'in':'out';
+                if(dirCls==='swap'||dirCls==='wrap'||dirCls==='approve')amtCls=tx.dir;
+                html+='<a class="tx-row" href="'+link+'" target="_blank"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div><div class="tx-amt '+amtCls+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>';
+            });
+            // Add or keep Load More button
+            var hasMore=a._txAll.length>a._txShown||Object.keys(a._txNextPages||{}).length>0;
+            if(hasMore)html+='<div id="tx-load-more" style="text-align:center;padding:16px"><button onclick="loadMoreTxs()" style="background:rgba(255,255,255,.06);border:1px solid #2a2a40;color:var(--muted);padding:10px 24px;border-radius:6px;cursor:pointer;font-family:var(--font-m);font-size:.75rem;transition:all .2s" onmouseover="this.style.borderColor=\'var(--gold)\';this.style.color=\'var(--gold)\'" onmouseout="this.style.borderColor=\'#2a2a40\';this.style.color=\'var(--muted)\'">Load more transactions ↓</button></div>';
+            if(append){
+                var btn=document.getElementById('tx-load-more');
+                if(btn)btn.remove();
+                $('det-txs').insertAdjacentHTML('beforeend',html);
+            } else {
+                $('det-txs').innerHTML=html;
+            }
+        }
+
+        var _detAgent=null,_detWallets=null,_detWalletsLower=null;
+        window.loadMoreTxs=function(){
+            var a=_detAgent;if(!a)return;
+            var btn=document.getElementById('tx-load-more');
+            if(btn)btn.innerHTML='<span style="color:var(--muted);font-size:.7rem">Loading...</span>';
+
+            // First show any already-fetched but not-yet-displayed txs
+            if(a._txAll&&a._txAll.length>a._txShown){
+                var next=a._txAll.slice(a._txShown,a._txShown+20);
+                a._txShown+=20;
+                renderTxs(next,a,_detWalletsLower,true);
+                return;
+            }
+
+            // Need to fetch more pages from API
+            var pages=a._txNextPages||{};
+            var keys=Object.keys(pages);
+            if(!keys.length){if(btn)btn.remove();return}
+
+            var proms=[];var allWallets=_detWallets;
+            keys.forEach(function(key){
+                var npp=pages[key];
+                var parts=key.split('_');var type=parts[0];var wIdx=parseInt(parts[1]);
+                var w=allWallets[wIdx];
+                var endpoint=type==='tx'?'transactions':'token-transfers';
+                var qs=Object.keys(npp).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(npp[k])}).join('&');
+                proms.push(fetch(BS+'/addresses/'+w+'/'+endpoint+'?'+qs).then(function(r){return r.json()}).then(function(d){return{key:key,type:type,wIdx:wIdx,data:d}}).catch(function(){return{key:key,type:type,wIdx:wIdx,data:{items:[]}}}));
+            });
+
+            Promise.all(proms).then(function(results){
+                var newAll=[];
+                // Reset next pages
+                a._txNextPages={};
+                results.forEach(function(r){
+                    var wAddr=allWallets[r.wIdx].toLowerCase();
+                    if(r.data.next_page_params)a._txNextPages[r.key]=r.data.next_page_params;
+                    if(r.type==='tx'){
+                        (r.data.items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),from=(tx.from&&tx.from.hash||'').toLowerCase(),dir=to===wAddr?'in':'out';newAll.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?from:to,_method:(tx.method||'').toLowerCase(),_input:(tx.raw_input||'').slice(0,10),_from:from,tok:false})});
+                    } else {
+                        (r.data.items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),from=(tx.from&&tx.from.hash||'').toLowerCase(),dir=to===wAddr?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';if(!sym||sym==='?'||sym.length>20)return;var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';newAll.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?from:to,_method:'',_input:'',_from:from,tok:true})});
+                    }
+                });
+                // Filter
+                newAll=newAll.filter(function(t){var cp=(t.cp||'').toLowerCase();return _detWalletsLower.indexOf(cp)===-1});
+                var seen={};a._txAll.forEach(function(t){seen[t.hash+t.dir+t.sym+t.value]=true});
+                newAll=newAll.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
+                newAll.sort(function(x,y){return new Date(y.ts)-new Date(x.ts)});
+                a._txAll=a._txAll.concat(newAll);
+                var next=newAll.slice(0,20);
+                a._txShown=a._txAll.length;
+                renderTxs(next,a,_detWalletsLower,true);
+            });
+        };
 
         $('det-close').onclick=function(){$('det').classList.remove('vis');document.querySelectorAll('.card').forEach(function(c){c.classList.remove('active')})};
         loadAll();setInterval(loadAll,120000);
