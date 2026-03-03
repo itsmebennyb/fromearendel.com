@@ -109,16 +109,16 @@
         .tx-dir.in{background:rgba(46,204,113,.12);color:var(--green)}.tx-dir.out{background:rgba(230,126,90,.12);color:var(--red)}
         .tx-dir.claim{background:rgba(245,197,66,.12);color:var(--gold)}.tx-dir.burn{background:rgba(255,87,51,.15);color:#ff5733}.tx-dir.buyback{background:rgba(155,89,182,.15);color:#bb6bd9}.tx-dir.swap{background:rgba(52,152,219,.12);color:#3498db}.tx-dir.lock{background:rgba(245,197,66,.15);color:var(--gold)}.tx-dir.lp{background:rgba(46,204,113,.08);color:#27ae60}.tx-dir.approve{background:rgba(255,255,255,.05);color:#555}.tx-dir.wrap{background:rgba(255,255,255,.05);color:#555}
         .tx-det{min-width:0}.tx-cp{font-family:var(--font-m);font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .tx-date{font-family:var(--font-m);font-size:.65rem;color:#555}
-        .tx-amt{font-family:var(--font-m);font-size:.8rem;font-weight:500;text-align:right}
+        .tx-date{font-family:var(--font-m);font-size:.65rem;color:#555;margin-top:3px}
+        .tx-amt{font-family:var(--font-m);font-size:.8rem;font-weight:500;text-align:right;white-space:nowrap}
         .tx-amt.in{color:var(--green)}.tx-amt.out{color:var(--red)}
         .tx-usd{font-family:var(--font-m);font-size:.65rem;color:#555;text-align:right}
-        .tx-tok{font-family:var(--font-m);font-size:.55rem;padding:1px 5px;border-radius:3px;background:rgba(245,197,66,.1);color:var(--gold);margin-left:4px}
+        .tx-tok{font-family:var(--font-m);font-size:.55rem;padding:1px 5px;border-radius:3px;background:rgba(245,197,66,.1);color:var(--gold);margin-left:6px;margin-right:6px}
         .load-i{font-family:var(--font-m);font-size:.8rem;color:var(--muted);padding:24px;text-align:center}
         footer{text-align:center;padding:40px 0;border-top:1px solid #222;color:var(--muted);font-size:.85rem}
         footer .by{margin-top:8px;font-size:.75rem;color:#555}
         footer a{color:#777;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.1)}footer a:hover{color:var(--gold)}
-        @media(max-width:600px){header .c{flex-direction:column;align-items:flex-start;justify-content:flex-start}.back{position:static}.badge{position:static}.grid{grid-template-columns:1fr}.det-bal-top{grid-template-columns:1fr}.det-bal-tok{grid-template-columns:1fr}.tx-row{grid-template-columns:50px 1fr auto;gap:8px;padding:10px 12px}}
+        @media(max-width:600px){header .c{flex-direction:column;align-items:flex-start;justify-content:flex-start}.back{position:static}.badge{position:static}.grid{grid-template-columns:1fr}.det-bal-top{grid-template-columns:1fr}.det-bal-tok{grid-template-columns:1fr}.tx-row{grid-template-columns:50px 1fr;gap:8px;padding:10px 12px}.tx-row>div:last-child{grid-column:1/-1;text-align:right}.tx-cp{white-space:normal;word-break:break-all}.tx-tok{display:inline-block;margin-top:2px}}
     </style>
 </head>
 <body>
@@ -530,7 +530,7 @@
                 var dirCls=cls.cls;
                 var amtCls=(dirCls==='in'||dirCls==='claim'||dirCls==='buyback')?'in':'out';
                 if(dirCls==='swap'||dirCls==='wrap'||dirCls==='approve')amtCls=tx.dir;
-                html+='<a class="tx-row" href="'+link+'" target="_blank"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div><div class="tx-amt '+amtCls+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>';
+                html+='<a class="tx-row" href="'+link+'" target="_blank"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><div class="tx-date">'+fd(tx.ts)+'</div></div><div><div class="tx-amt '+amtCls+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>';
             });
             // Add or keep Load More button
             var hasMore=a._txAll.length>a._txShown||Object.keys(a._txNextPages||{}).length>0;
