@@ -290,7 +290,7 @@
                     if(dir==='out'&&sym==='EARENDEL') return {label:'📤 SELL',cls:'out'};
                     return {label:'⚡ SWAP',cls:'swap'};
                 }
-                if(method==='exectransaction') return null;
+                if(tx._isClaim) return {label:'💰 CLAIM',cls:'claim'};
                 return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
             }
 
@@ -320,6 +320,10 @@
                 });
                 all=all.filter(function(t){return !(t._method==='approve'&&t.tok)});
                 var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
+                // Detect claim patterns: same tx has incoming WETH + EARENDEL = claim
+                var byHash={};
+                all.forEach(function(t){if(!t.hash||t.dir!=='in')return;if(!byHash[t.hash])byHash[t.hash]=[];byHash[t.hash].push(t)});
+                Object.keys(byHash).forEach(function(h){var g=byHash[h];var hasWeth=g.some(function(t){return t.sym==='WETH'});var hasOwn=g.some(function(t){return t.sym==='EARENDEL'});if(hasWeth&&hasOwn)g.forEach(function(t){t._isClaim=true})});
                 all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});
                 var show=all.slice(0,20);
                 if(!show.length){$('tx-loading').style.display='none';$('tx-empty').style.display='block';return}

@@ -382,6 +382,7 @@
             if(dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
             if(dir==='in'&&(fromAddr===CLANKER_FEE||fromAddr===CLANKER_REWARDS)) return {label:'💰 CLAIM',cls:'claim'};
             if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
+            if(tx._isClaim) return {label:'💰 CLAIM',cls:'claim'};
             if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};
             if(method==='deposit'&&toAddr===WETH_ADDR) return {label:'↻ WRAP',cls:'wrap'};
             if(method==='withdraw'&&fromAddr===WETH_ADDR) return {label:'↻ UNWRAP',cls:'wrap'};
@@ -392,7 +393,8 @@
             }
             if(method.indexOf('addliquidity')!==-1||method.indexOf('mint')!==-1&&ROUTERS.indexOf(toAddr)!==-1) return {label:'💧 LP ADD',cls:'lp'};
             if(method.indexOf('removeliquidity')!==-1||method.indexOf('burn')!==-1&&ROUTERS.indexOf(fromAddr)!==-1) return {label:'💧 LP REMOVE',cls:'lp'};
-            if(method==='exectransaction') return null;
+            // Safe multisig: classify the underlying token transfers, don't skip
+            // (execTransaction wraps claims, transfers, etc.)
             return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
         }
 
@@ -462,6 +464,21 @@
                 // Filter approves from token transfers (they have 0 value)
                 all=all.filter(function(t){return !(t._method==='approve'&&t.tok)});
                 var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
+                // Detect claim patterns: same tx hash has agent receiving WETH + own token = claim
+                var byHash={};
+                all.forEach(function(t){
+                    if(!t.hash||t.dir!=='in')return;
+                    if(!byHash[t.hash])byHash[t.hash]=[];
+                    byHash[t.hash].push(t);
+                });
+                Object.keys(byHash).forEach(function(h){
+                    var group=byHash[h];
+                    var hasWeth=group.some(function(t){return t.sym==='WETH'});
+                    var hasOwnToken=group.some(function(t){return t.sym.toUpperCase()===a.ts.toUpperCase()});
+                    if(hasWeth&&hasOwnToken){
+                        group.forEach(function(t){t._isClaim=true});
+                    }
+                });
                 all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});var show=all.slice(0,20);
                 if(!show.length){$('det-txs').innerHTML='<div class="load-i">No transactions found.</div>';return}
                 // Store pagination state and remaining txs
