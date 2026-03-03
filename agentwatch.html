@@ -105,8 +105,9 @@
         .tx-list{display:flex;flex-direction:column;gap:6px}
         .tx-row{display:grid;grid-template-columns:60px 1fr auto;align-items:center;gap:12px;background:var(--bg-card);border:1px solid #2a2a40;border-radius:6px;padding:12px 16px;text-decoration:none;color:var(--white);transition:border-color .2s;font-size:.85rem}
         .tx-row:hover{border-color:rgba(245,197,66,.3)}
-        .tx-dir{font-family:var(--font-m);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:3px;text-align:center}
+        .tx-dir{font-family:var(--font-m);font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:3px;text-align:center;min-width:60px}
         .tx-dir.in{background:rgba(46,204,113,.12);color:var(--green)}.tx-dir.out{background:rgba(230,126,90,.12);color:var(--red)}
+        .tx-dir.claim{background:rgba(245,197,66,.12);color:var(--gold)}.tx-dir.burn{background:rgba(255,87,51,.15);color:#ff5733}.tx-dir.buyback{background:rgba(155,89,182,.15);color:#bb6bd9}.tx-dir.swap{background:rgba(52,152,219,.12);color:#3498db}.tx-dir.lock{background:rgba(245,197,66,.15);color:var(--gold)}.tx-dir.lp{background:rgba(46,204,113,.08);color:#27ae60}.tx-dir.approve{background:rgba(255,255,255,.05);color:#555}.tx-dir.wrap{background:rgba(255,255,255,.05);color:#555}
         .tx-det{min-width:0}.tx-cp{font-family:var(--font-m);font-size:.75rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .tx-date{font-family:var(--font-m);font-size:.65rem;color:#555}
         .tx-amt{font-family:var(--font-m);font-size:.8rem;font-weight:500;text-align:right}
@@ -406,19 +407,91 @@
                     $('hold-sec').style.display='block'}
             }).catch(function(){});
 
+            // === TX CLASSIFICATION ===
+            var DEAD=['0x0000000000000000000000000000000000000000','0x000000000000000000000000000000000000dead','0x0000000000000000000000000000000000000001'];
+            var ROUTERS=['0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad','0x2626664c2603336e57b271c5c0b26f421741e481','0x6131b5fae19ea4f9d964eac0408e4408b66337b5','0xd8ba9d1a99fc21f0eca24e9b85737c28a194a4e2'];
+            var WETH_ADDR='0x4200000000000000000000000000000000000006';
+            var CLANKER_FEE='0xf60633d02690e2a15a54ab919925f3d038df163e';
+
+            function classifyTx(tx,agentToken,allWalletsLower){
+                var method=(tx._method||'').toLowerCase();
+                var input=(tx._input||'').slice(0,10).toLowerCase();
+                var toAddr=(tx.cp||'').toLowerCase();
+                var fromAddr=(tx._from||'').toLowerCase();
+                var sym=(tx.sym||'').toUpperCase();
+                var agentSym=(agentToken||'').toUpperCase();
+                var dir=tx.dir;
+
+                // Burns: transfer to dead address
+                if(DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
+
+                // Claims: incoming from Clanker fee address or method contains 'claim'
+                if(dir==='in'&&fromAddr===CLANKER_FEE) return {label:'💰 CLAIM',cls:'claim'};
+                if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
+
+                // Approve: just an approval, not a real transfer
+                if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};
+
+                // Wraps/unwraps
+                if(method==='deposit'&&toAddr===WETH_ADDR) return {label:'↻ WRAP',cls:'wrap'};
+                if(method==='withdraw'&&fromAddr===WETH_ADDR) return {label:'↻ UNWRAP',cls:'wrap'};
+
+                // Swaps
+                if(method==='swap'||method.indexOf('swap')!==-1||input==='0xeffbec13'||input==='0x38ed1739'||input==='0x5ae401dc'||input==='0x04e45aaf'){
+                    // Buyback: agent receives its own token in a swap
+                    if(dir==='in'&&sym===agentSym) return {label:'🔄 BUYBACK',cls:'buyback'};
+                    // Sell: agent sends its own token in a swap
+                    if(dir==='out'&&sym===agentSym) return {label:'📤 SELL',cls:'out'};
+                    return {label:'⚡ SWAP',cls:'swap'};
+                }
+
+                // LP operations
+                if(method.indexOf('addliquidity')!==-1||method.indexOf('mint')!==-1&&ROUTERS.indexOf(toAddr)!==-1) return {label:'💧 LP ADD',cls:'lp'};
+                if(method.indexOf('removeliquidity')!==-1||method.indexOf('burn')!==-1&&ROUTERS.indexOf(fromAddr)!==-1) return {label:'💧 LP REMOVE',cls:'lp'};
+
+                // Safe multisig execution (unwrap to show as generic)
+                if(method==='exectransaction') return null; // let token transfers classify themselves
+
+                // Default
+                return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
+            }
+
             // Fetch transactions from all wallets
             var txProms=[];allWallets.forEach(function(w){txProms.push(fetch(BS+'/addresses/'+w+'/transactions').then(function(r){return r.json()}).catch(function(){return{items:[]}}));txProms.push(fetch(BS+'/addresses/'+w+'/token-transfers').then(function(r){return r.json()}).catch(function(){return{items:[]}}))});
             Promise.all(txProms).then(function(results){
                 var all=[];
+                // Build a method lookup from main transactions
+                var txMethods={};
+                for(var ri=0;ri<results.length;ri+=2){
+                    (results[ri].items||[]).forEach(function(tx){
+                        var m=(tx.method||'').toLowerCase();
+                        var inp=tx.raw_input||'';
+                        if(tx.hash)txMethods[tx.hash.toLowerCase()]={method:m,input:inp};
+                    });
+                }
                 for(var ri=0;ri<results.length;ri+=2){var wIdx=ri/2;var wAddr=allWallets[wIdx].toLowerCase();
-                (results[ri].items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wAddr?'in':'out';all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash)})});
-                (results[ri+1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),dir=to===wAddr?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';if(!sym||sym==='?'||sym.length>20)return;var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';all.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true})});}
+                (results[ri].items||[]).forEach(function(tx){var v=tx.value||'0';if(v==='0')return;var to=(tx.to&&tx.to.hash||'').toLowerCase(),from=(tx.from&&tx.from.hash||'').toLowerCase(),dir=to===wAddr?'in':'out';all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?from:to,_method:(tx.method||'').toLowerCase(),_input:(tx.raw_input||'').slice(0,10),_from:from,tok:false})});
+                (results[ri+1].items||[]).forEach(function(tx){var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18),to=(tx.to&&tx.to.hash||'').toLowerCase(),from=(tx.from&&tx.from.hash||'').toLowerCase(),dir=to===wAddr?'in':'out',sym=(tx.token&&tx.token.symbol)||'ERC20';if(!sym||sym==='?'||sym.length>20)return;var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';var mInfo=txMethods[(txHash||'').toLowerCase()]||{};all.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?from:to,_method:mInfo.method||'',_input:(mInfo.input||'').slice(0,10),_from:from,tok:true})});}
                 // Filter out transfers between the agent's own wallets
                 all=all.filter(function(t){var cp=(t.cp||'').toLowerCase();return allWalletsLower.indexOf(cp)===-1});
+                // Filter approves from token transfers (they have 0 value)
+                all=all.filter(function(t){return !(t._method==='approve'&&t.tok)});
                 var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
-                all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});var show=all.slice(0,15);
+                all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});var show=all.slice(0,20);
                 if(!show.length){$('det-txs').innerHTML='<div class="load-i">No transactions found.</div>';return}
-                var html='';show.forEach(function(tx){var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPrice:0,sign=tx.dir==='in'?'+':'-';var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';var amt=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';html+='<a class="tx-row" href="'+link+'" target="_blank"><span class="tx-dir '+tx.dir+'">'+(tx.dir==='in'?'IN':'OUT')+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div><div class="tx-amt '+tx.dir+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>'});
+                var html='';show.forEach(function(tx){
+                    var cls=classifyTx(tx,a.ts,allWalletsLower);
+                    if(!cls)return; // skip (e.g. execTransaction wrapper)
+                    var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPrice:0;
+                    var sign=tx.dir==='in'?'+':'-';
+                    var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';
+                    var amt=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);
+                    var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';
+                    var dirCls=cls.cls;
+                    var amtCls=(dirCls==='in'||dirCls==='claim'||dirCls==='buyback')?'in':'out';
+                    if(dirCls==='swap'||dirCls==='wrap'||dirCls==='approve')amtCls=tx.dir;
+                    html+='<a class="tx-row" href="'+link+'" target="_blank"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div><div class="tx-amt '+amtCls+'">'+sign+amt+' '+tx.sym+'</div>'+(usd>0.01?'<div class="tx-usd">'+fu(usd)+'</div>':'')+'</div></a>';
+                });
                 $('det-txs').innerHTML=html;
             }).catch(function(e){$('det-txs').innerHTML='<div class="load-i" style="color:var(--red)">Failed: '+e.message+'</div>'});
         }
