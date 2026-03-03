@@ -76,9 +76,10 @@
         .tx-list{display:flex;flex-direction:column;gap:8px}
         .tx-row{display:grid;grid-template-columns:80px 1fr auto;align-items:center;gap:16px;background:var(--bg-card);border:1px solid #2a2a40;border-radius:8px;padding:16px 20px;text-decoration:none;color:var(--white);transition:border-color .2s}
         .tx-row:hover{border-color:rgba(245,197,66,.3)}
-        .tx-dir{font-family:var(--font-m);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:4px 10px;border-radius:4px;text-align:center;width:fit-content}
+        .tx-dir{font-family:var(--font-m);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:4px 10px;border-radius:4px;text-align:center;width:fit-content;min-width:70px}
         .tx-dir.in{background:rgba(46,204,113,.12);color:var(--green);border:1px solid rgba(46,204,113,.25)}
         .tx-dir.out{background:rgba(230,126,90,.12);color:var(--red);border:1px solid rgba(230,126,90,.25)}
+        .tx-dir.claim{background:rgba(245,197,66,.12);color:var(--gold);border:1px solid rgba(245,197,66,.25)}.tx-dir.burn{background:rgba(255,87,51,.15);color:#ff5733;border:1px solid rgba(255,87,51,.25)}.tx-dir.buyback{background:rgba(155,89,182,.15);color:#bb6bd9;border:1px solid rgba(155,89,182,.25)}.tx-dir.swap{background:rgba(52,152,219,.12);color:#3498db;border:1px solid rgba(52,152,219,.25)}.tx-dir.lp{background:rgba(46,204,113,.08);color:#27ae60;border:1px solid rgba(46,204,113,.15)}.tx-dir.approve{background:rgba(255,255,255,.05);color:#555;border:1px solid rgba(255,255,255,.05)}.tx-dir.wrap{background:rgba(255,255,255,.05);color:#555;border:1px solid rgba(255,255,255,.05)}
         .tx-det{display:flex;flex-direction:column;gap:2px;min-width:0}
         .tx-cp{font-family:var(--font-m);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .tx-date{font-family:var(--font-m);font-size:.7rem;color:#555}
@@ -268,39 +269,72 @@
                 }
             }).catch(function(){});
 
+            // TX Classification
+            var DEAD=['0x0000000000000000000000000000000000000000','0x000000000000000000000000000000000000dead','0x0000000000000000000000000000000000000001'];
+            var CLANKER_FEE='0xf60633d02690e2a15a54ab919925f3d038df163e';
+            var WETH_ADDR='0x4200000000000000000000000000000000000006';
+            function classifyTx(tx){
+                var method=(tx._method||'').toLowerCase(),input=(tx._input||'').slice(0,10).toLowerCase();
+                var toAddr=(tx.cp||'').toLowerCase(),fromAddr=(tx._from||'').toLowerCase();
+                var sym=(tx.sym||'').toUpperCase(),dir=tx.dir;
+                if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'📩 AIRDROP',cls:'wrap'};
+                if(dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
+                if(dir==='in'&&fromAddr===CLANKER_FEE) return {label:'💰 CLAIM',cls:'claim'};
+                if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
+                if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};
+                if(method==='deposit'&&toAddr===WETH_ADDR) return {label:'↻ WRAP',cls:'wrap'};
+                if(method==='withdraw'&&fromAddr===WETH_ADDR) return {label:'↻ UNWRAP',cls:'wrap'};
+                if(method==='swap'||method.indexOf('swap')!==-1||input==='0xeffbec13'||input==='0x38ed1739'||input==='0x5ae401dc'||input==='0x04e45aaf'){
+                    if(dir==='in'&&sym==='EARENDEL') return {label:'🔄 BUYBACK',cls:'buyback'};
+                    if(dir==='out'&&sym==='EARENDEL') return {label:'📤 SELL',cls:'out'};
+                    return {label:'⚡ SWAP',cls:'swap'};
+                }
+                if(method==='exectransaction') return null;
+                return dir==='in'?{label:'IN',cls:'in'}:{label:'OUT',cls:'out'};
+            }
+
             // Transactions
             Promise.all([
                 fetch(BS+'/addresses/'+W+'/transactions').then(function(r){return r.json()}),
                 fetch(BS+'/addresses/'+W+'/token-transfers').then(function(r){return r.json()})
             ]).then(function(res){
-                var all=[];
+                var all=[],txMethods={};
                 (res[0].items||[]).forEach(function(tx){
+                    var m=(tx.method||'').toLowerCase(),inp=tx.raw_input||'';
+                    if(tx.hash)txMethods[tx.hash.toLowerCase()]={method:m,input:inp};
                     var v=tx.value||'0';if(v==='0')return;
-                    var to=(tx.to&&tx.to.hash||'').toLowerCase();
+                    var to=(tx.to&&tx.to.hash||'').toLowerCase(),from=(tx.from&&tx.from.hash||'').toLowerCase();
                     var dir=to===WL?'in':'out';
-                    all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash)});
+                    all.push({hash:tx.hash,ts:tx.timestamp,value:parseFloat(v)/1e18,dir:dir,sym:'ETH',cp:dir==='in'?from:to,_method:m,_input:(inp||'').slice(0,10),_from:from});
                 });
                 (res[1].items||[]).forEach(function(tx){
                     var tot=tx.total||{},dec=parseInt(tot.decimals||(tx.token&&tx.token.decimals)||18);
-                    var to=(tx.to&&tx.to.hash||'').toLowerCase();
+                    var to=(tx.to&&tx.to.hash||'').toLowerCase(),from=(tx.from&&tx.from.hash||'').toLowerCase();
                     var dir=to===WL?'in':'out';
                     var sym=(tx.token&&tx.token.symbol)||'ERC20';
                     if(!sym||sym==='?'||sym.length>20)return;
                     var txHash=tx.transaction_hash||tx.tx_hash||tx.hash||'';
-                    all.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?(tx.from&&tx.from.hash):(tx.to&&tx.to.hash),tok:true});
+                    var mInfo=txMethods[(txHash||'').toLowerCase()]||{};
+                    all.push({hash:txHash,ts:tx.timestamp,value:parseFloat(tot.value||'0')/Math.pow(10,dec),dir:dir,sym:sym,cp:dir==='in'?from:to,tok:true,_method:mInfo.method||'',_input:(mInfo.input||'').slice(0,10),_from:from});
                 });
+                all=all.filter(function(t){return !(t._method==='approve'&&t.tok)});
                 var seen={};all=all.filter(function(t){var k=t.hash+t.dir+t.sym+t.value;if(seen[k])return false;seen[k]=true;return true});
                 all.sort(function(a,b){return new Date(b.ts)-new Date(a.ts)});
                 var show=all.slice(0,20);
                 if(!show.length){$('tx-loading').style.display='none';$('tx-empty').style.display='block';return}
                 var html='';
                 show.forEach(function(tx){
+                    var cls=classifyTx(tx);
+                    if(!cls)return;
                     var usd=(tx.sym==='ETH'||tx.sym==='WETH')?tx.value*ethPrice:0;
                     var sign=tx.dir==='in'?'+':'-';
                     var badge=tx.tok?'<span class="tx-tok">'+tx.sym+'</span>':'';
                     var amtStr=tx.value<0.0001&&tx.value>0?tx.value.toExponential(2):tx.value>1e6?fmtN(tx.value):tx.value.toFixed(4);
                     var link=tx.hash?'https://basescan.org/tx/'+tx.hash:'#';
-                    html+='<a class="tx-row" href="'+link+'" target="_blank" rel="noopener"><span class="tx-dir '+tx.dir+'">'+(tx.dir==='in'?'IN':'OUT')+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div class="tx-amt"><span class="tx-eth '+tx.dir+'">'+sign+amtStr+' '+tx.sym+'</span>'+(usd>0.01?'<span class="tx-usd">'+fu(usd)+'</span>':'')+'</div></a>';
+                    var dirCls=cls.cls;
+                    var amtCls=(dirCls==='in'||dirCls==='claim'||dirCls==='buyback')?'in':'out';
+                    if(dirCls==='swap'||dirCls==='wrap'||dirCls==='approve')amtCls=tx.dir;
+                    html+='<a class="tx-row" href="'+link+'" target="_blank" rel="noopener"><span class="tx-dir '+dirCls+'">'+cls.label+'</span><div class="tx-det"><span class="tx-cp">'+(tx.dir==='in'?'From':'To')+' '+tr(tx.cp)+badge+'</span><span class="tx-date">'+fd(tx.ts)+'</span></div><div class="tx-amt"><span class="tx-eth '+amtCls+'">'+sign+amtStr+' '+tx.sym+'</span>'+(usd>0.01?'<span class="tx-usd">'+fu(usd)+'</span>':'')+'</div></a>';
                 });
                 $('tx-loading').style.display='none';
                 $('tx-list').innerHTML=html;
