@@ -368,6 +368,7 @@
         var ROUTERS=['0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad','0x2626664c2603336e57b271c5c0b26f421741e481','0x6131b5fae19ea4f9d964eac0408e4408b66337b5','0xd8ba9d1a99fc21f0eca24e9b85737c28a194a4e2'];
         var WETH_ADDR='0x4200000000000000000000000000000000000006';
         var CLANKER_FEE='0xf60633d02690e2a15a54ab919925f3d038df163e';
+        var CLANKER_REWARDS='0xd59ce43e53d69f190e15d9822fb4540dccc91178';
 
         function classifyTx(tx,agentToken,allWalletsLower){
             var method=(tx._method||'').toLowerCase();
@@ -379,7 +380,7 @@
             var dir=tx.dir;
             if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'📩 AIRDROP',cls:'wrap'};
             if(dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
-            if(dir==='in'&&fromAddr===CLANKER_FEE) return {label:'💰 CLAIM',cls:'claim'};
+            if(dir==='in'&&(fromAddr===CLANKER_FEE||fromAddr===CLANKER_REWARDS)) return {label:'💰 CLAIM',cls:'claim'};
             if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
             if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};
             if(method==='deposit'&&toAddr===WETH_ADDR) return {label:'↻ WRAP',cls:'wrap'};
