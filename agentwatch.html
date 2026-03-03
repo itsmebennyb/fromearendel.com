@@ -64,10 +64,10 @@
         .card:hover{border-color:rgba(245,197,66,.3);transform:translateY(-2px)}
         .card.active{border-color:var(--gold)}
         .card.loading{opacity:.7}
-        .card-top{display:flex;align-items:center;gap:8px;margin-bottom:2px}
-        .card-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--bg);border:1px solid #2a2a40}
+        .card-top{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+        .card-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--bg);border:1px solid #2a2a40}
         .card-name{font-family:var(--font-h);font-size:1.1rem;font-weight:700}
-        .card-handle{font-family:var(--font-m);font-size:.7rem;color:var(--muted);margin-bottom:12px}
+        .card-handle{font-family:var(--font-m);font-size:.7rem;color:var(--muted)}
         .card-handle a{color:var(--muted);text-decoration:none}.card-handle a:hover{color:var(--gold)}
         .card-bal{font-family:var(--font-m);font-size:1.4rem;font-weight:700;color:var(--gold);margin-bottom:2px}
         .card-sub{font-family:var(--font-m);font-size:.65rem;color:var(--muted);line-height:1.4}
@@ -293,7 +293,7 @@
         A.forEach(function(a,i){
             var d=document.createElement('div');d.className='card loading';d.id='c-'+i;
             var xHandle=a.h.replace('@','');
-            d.innerHTML='<div class="card-rank">#'+(i+1)+'</div><div class="card-top"><img class="card-avatar" src="https://unavatar.io/x/'+xHandle+'" alt="'+a.n+'" loading="lazy" onerror="this.style.display=\'none\'"><div class="card-name">'+a.n+'</div></div><div class="card-handle"><a href="'+a.u+'" target="_blank">'+a.h+'</a></div><div class="card-load" id="b-'+i+'">Loading...</div>';
+            d.innerHTML='<div class="card-rank">#'+(i+1)+'</div><div class="card-top"><img class="card-avatar" src="https://unavatar.io/x/'+xHandle+'" alt="'+a.n+'" loading="lazy" onerror="this.style.display=\'none\'"><div><div class="card-name">'+a.n+'</div><div class="card-handle"><a href="'+a.u+'" target="_blank">'+a.h+'</a></div></div></div><div class="card-load" id="b-'+i+'">Loading...</div>';
             d.onclick=function(){showDet(i)};
             grid.appendChild(d);
         });
