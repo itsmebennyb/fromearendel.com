@@ -422,7 +422,10 @@
                 var agentSym=(agentToken||'').toUpperCase();
                 var dir=tx.dir;
 
-                // Burns: agent SENDING tokens to dead address (not receiving from one)
+                // Airdrops: incoming tokens minted from zero address
+                if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'📩 AIRDROP',cls:'wrap'};
+
+                // Burns: agent SENDING tokens to dead address
                 if(dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'🔥 BURN',cls:'burn'};
 
                 // Claims: incoming from Clanker fee address or method contains 'claim'
