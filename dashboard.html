@@ -273,14 +273,17 @@
             var DEAD=['0x0000000000000000000000000000000000000000','0x000000000000000000000000000000000000dead','0x0000000000000000000000000000000000000001'];
             var CLANKER_FEE='0xf60633d02690e2a15a54ab919925f3d038df163e';
             var CLANKER_REWARDS='0xd59ce43e53d69f190e15d9822fb4540dccc91178';
+            var FEE_CLAIMERS=['0xf3622742b1e446d92e45e22923ef11c2fcd55d68'];
             var WETH_ADDR='0x4200000000000000000000000000000000000006';
             function classifyTx(tx){
                 var method=(tx._method||'').toLowerCase(),input=(tx._input||'').slice(0,10).toLowerCase();
                 var toAddr=(tx.cp||'').toLowerCase(),fromAddr=(tx._from||'').toLowerCase();
                 var sym=(tx.sym||'').toUpperCase(),dir=tx.dir;
+                if(sym==='WETH'&&dir==='out'&&DEAD.indexOf(toAddr)!==-1) return {label:'↻ UNWRAP',cls:'wrap'};
+                if(sym==='WETH'&&dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'↻ WRAP',cls:'wrap'};
                 if(dir==='in'&&DEAD.indexOf(fromAddr)!==-1) return {label:'🚫 SPAM',cls:'wrap'};
                 if(dir==='out'&&DEAD.indexOf(toAddr)!==-1&&sym!=='ETH'&&sym!=='WETH') return {label:'🔥 BURN',cls:'burn'};
-                if(dir==='in'&&(fromAddr===CLANKER_FEE||fromAddr===CLANKER_REWARDS)) return {label:'💰 CLAIM',cls:'claim'};
+                if(dir==='in'&&(fromAddr===CLANKER_FEE||fromAddr===CLANKER_REWARDS||FEE_CLAIMERS.indexOf(fromAddr)!==-1)) return {label:'💰 CLAIM',cls:'claim'};
                 if(method.indexOf('claim')!==-1) return {label:'💰 CLAIM',cls:'claim'};
                 if(method==='approve') return {label:'🔓 APPROVE',cls:'approve'};
                 if(method==='deposit'&&toAddr===WETH_ADDR) return {label:'↻ WRAP',cls:'wrap'};
