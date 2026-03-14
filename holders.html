@@ -312,6 +312,7 @@
                 const address = accounts[0];
                 walletAddr.textContent = address;
 
+                // Switch to Base
                 try {
                     await window.ethereum.request({
                         method: 'wallet_switchEthereumChain',
@@ -319,39 +320,71 @@
                     });
                 } catch (switchError) {
                     if (switchError.code === 4902) {
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: BASE_CHAIN_ID,
-                                chainName: 'Base',
-                                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                                rpcUrls: [BASE_RPC],
-                                blockExplorerUrls: ['https://basescan.org']
-                            }]
-                        });
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: BASE_CHAIN_ID,
+                                    chainName: 'Base',
+                                    nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                                    rpcUrls: [BASE_RPC],
+                                    blockExplorerUrls: ['https://basescan.org']
+                                }]
+                            });
+                        } catch (addError) {
+                            setStatus('Could not add Base network to your wallet. Please add it manually and try again.', true);
+                            connectBtn.disabled = false;
+                            return;
+                        }
+                    } else if (switchError.code === 4001 || switchError.code === 'ACTION_REJECTED') {
+                        setStatus('You need to switch to Base network to verify. Please try again.', true);
+                        connectBtn.disabled = false;
+                        return;
                     } else {
-                        throw switchError;
+                        setStatus('Could not switch to Base network. Please switch manually and try again.', true);
+                        connectBtn.disabled = false;
+                        return;
                     }
                 }
 
+                // Sign verification message
                 setStatus('Please sign the verification message...');
-                const timestamp = new Date().toISOString();
-                const message = 'Verify wallet ownership for fromearendel.com \u2014 ' + timestamp;
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                const signer = await provider.getSigner();
-                const signature = await signer.signMessage(message);
-
-                const recovered = ethers.verifyMessage(message, signature);
-                if (recovered.toLowerCase() !== address.toLowerCase()) {
-                    setStatus('Signature verification failed. Please try again.', true);
+                let signature;
+                try {
+                    const timestamp = new Date().toISOString();
+                    var message = 'Verify wallet ownership for fromearendel.com \u2014 ' + timestamp;
+                    const provider = new ethers.BrowserProvider(window.ethereum);
+                    const signer = await provider.getSigner();
+                    signature = await signer.signMessage(message);
+                } catch (signError) {
+                    if (signError.code === 4001 || signError.code === 'ACTION_REJECTED') {
+                        setStatus('Signature cancelled. You need to sign to verify wallet ownership.', false);
+                    } else {
+                        setStatus('Signature failed: ' + (signError.shortMessage || signError.message || 'Unknown error'), true);
+                    }
                     connectBtn.disabled = false;
                     return;
                 }
 
+                const recovered = ethers.verifyMessage(message, signature);
+                if (recovered.toLowerCase() !== address.toLowerCase()) {
+                    setStatus('Signature verification failed. The signed address doesn\'t match your wallet.', true);
+                    connectBtn.disabled = false;
+                    return;
+                }
+
+                // Check token balance
                 setStatus('Checking $EARENDEL balance...');
-                const baseProvider = new ethers.JsonRpcProvider(BASE_RPC);
-                const tokenContract = new ethers.Contract(TOKEN_CONTRACT, ERC20_ABI, baseProvider);
-                const balance = await tokenContract.balanceOf(address);
+                let balance;
+                try {
+                    const baseProvider = new ethers.JsonRpcProvider(BASE_RPC);
+                    const tokenContract = new ethers.Contract(TOKEN_CONTRACT, ERC20_ABI, baseProvider);
+                    balance = await tokenContract.balanceOf(address);
+                } catch (balanceError) {
+                    setStatus('Could not check token balance. Base network may be congested — try again in a moment.', true);
+                    connectBtn.disabled = false;
+                    return;
+                }
 
                 if (balance > 0n) {
                     setStatus('');
@@ -371,11 +404,13 @@
                 }
 
             } catch (err) {
-                console.error(err);
+                console.error('Holder verification error:', err);
                 if (err.code === 4001 || err.code === 'ACTION_REJECTED') {
                     setStatus('Connection cancelled.', false);
+                } else if (err.code === -32002) {
+                    setStatus('A wallet request is already pending — check your wallet app.', true);
                 } else {
-                    setStatus('Something went wrong. Please try again.', true);
+                    setStatus('Connection failed: ' + (err.shortMessage || err.message || 'Unknown error. Check your wallet and try again.'), true);
                 }
                 connectBtn.disabled = false;
             }
