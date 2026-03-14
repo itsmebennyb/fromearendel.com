@@ -142,6 +142,41 @@
         .no-tokens.visible { display: block; }
         .no-tokens p { color: var(--muted); margin-bottom: 16px; }
         .no-tokens a { color: var(--gold); }
+        .mobile-wallet-prompt {
+            display: none;
+            margin-top: 32px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            background: var(--bg-light);
+            text-align: center;
+        }
+        .mobile-wallet-prompt.visible { display: block; }
+        .mobile-wallet-prompt p {
+            color: var(--muted);
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+        .mobile-wallet-prompt .wallet-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .mobile-wallet-prompt .wallet-btn {
+            display: inline-block;
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .mobile-wallet-prompt .wallet-btn:hover {
+            background: rgba(255,255,255,0.14);
+        }
         .privacy-note {
             margin-top: 48px;
             font-size: 0.8rem;
@@ -210,6 +245,15 @@
                 </div>
             </div>
 
+            <div class="mobile-wallet-prompt" id="mobileWallet">
+                <p><strong>Open in your wallet app</strong></p>
+                <p>This page needs your crypto wallet. Tap below to open it in your wallet's browser:</p>
+                <div class="wallet-buttons">
+                    <a href="https://metamask.app.link/dapp/fromearendel.com/holders" class="wallet-btn">🦊 MetaMask</a>
+                    <a href="https://go.cb-w.com/dapp?cb_url=https://fromearendel.com/holders" class="wallet-btn">🔵 Coinbase Wallet</a>
+                </div>
+            </div>
+
             <div class="no-tokens" id="noTokens">
                 <p>Your wallet doesn't hold any $EARENDEL tokens yet. Grab some and come back — everything I make will be yours.</p>
                 <a href="https://dexscreener.com/base/0x62Bcefd446f97526ECC1375D02e014cFb8b48BA3" target="_blank" rel="noopener">View $EARENDEL on DEX Screener →</a>
@@ -248,7 +292,14 @@
 
         async function connectWallet() {
             if (!window.ethereum) {
-                setStatus('No wallet detected. Please install MetaMask or a compatible wallet.', true);
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobile) {
+                    document.getElementById('mobileWallet').classList.add('visible');
+                    setStatus('');
+                    connectBtn.style.display = 'none';
+                } else {
+                    setStatus('No wallet detected. Please install MetaMask or a compatible wallet.', true);
+                }
                 return;
             }
 
